@@ -166,10 +166,8 @@ void handlePosition(const std::string &positionData) {
 }
 
 void handleGo(const std::string &goData) {
-  std::cerr << "why we here" << std::endl;
   // Implement move calculation logic
   if (p.move_history.size() < 16) {
-    // std::cout << "should be bookmove\n";
     std::string res = my_book.get_random_next_move(p.move_history);
     if (res != "") {
       std::cout << "bestmove " << res << std::endl;
