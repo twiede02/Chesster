@@ -1,23 +1,54 @@
-# Minimum required version of CMake
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.16)
 
-# Project name and version
 project(Chesster VERSION 0.1 LANGUAGES CXX)
 
-# Specify the C++ standard
 set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED True)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
-set(CMAKE_BUILD_TYPE Release)
+add_compile_options(-Wall -Wextra -Wpedantic -Wshadow -Wconversion)
+option(ENABLE_SANITIZERS "Enable runtime sanitizers for debugging" ON)
+
+if (NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE Debug CACHE STRING "Build type (Debug or Release)" FORCE)
+endif()
+
 # Include directories
 include_directories(include)
 
 # Add source files
-file(GLOB SOURCES "src/*.cpp")
+file(GLOB SOURCES CONFIGURE_DEPENDS "src/*.cpp")
 
 # Add executable target
 add_executable(chesster ${SOURCES})
+
+if (ENABLE_SANITIZERS AND CMAKE_BUILD_TYPE STREQUAL "Debug")
+    target_compile_options(chesster PRIVATE -fsanitize=address,undefined)
+    target_link_options(chesster PRIVATE -fsanitize=address,undefined)
+endif()
+
+if ("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
+    message(STATUS "Configuring Debug build with sanitizers")
+
+    # Debug flags
+    target_compile_options(chesster PRIVATE -O0 -g3 -fno-omit-frame-pointer)
+    target_link_options(chesster PRIVATE -O0 -g3 -fno-omit-frame-pointer)
+
+    if (ENABLE_SANITIZERS)
+        message(STATUS "Sanitizers enabled")
+        target_compile_options(chesster PRIVATE -fsanitize=address,undefined)
+        target_link_options(chesster PRIVATE -fsanitize=address,undefined)
+    endif()
+
+elseif (CMAKE_BUILD_TYPE STREQUAL "Release")
+    message(STATUS "Configuring Release build")
+
+    target_compile_options(chesster PRIVATE -O3 -DNDEBUG)
+    target_link_options(chesster PRIVATE -O3)
+
+endif()
+
 
 # Enable to compile ctests for more detailed perft
 if (false)
