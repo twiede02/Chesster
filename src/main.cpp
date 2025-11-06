@@ -2,7 +2,7 @@
 #include "uci.h"
 
 int main() {
-  initialize_zobrist();
-  uciloop();
-  return 0;
+    initialize_zobrist();
+    uciloop();
+    return 0;
 }
