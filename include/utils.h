@@ -89,7 +89,7 @@ std::string inline get_coords_from_index(int index) {
     }
 
     // Calculate file (column) and rank (row)
-    char file = 'a' + (index % 8); // File 'a' to 'h'
+    char file = (char) ('a' + (index % 8)); // File 'a' to 'h'
     int rank = (index / 8) + 1;    // Rank 1 to 8
 
     // Concatenate file and rank into a string

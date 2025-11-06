@@ -39,7 +39,7 @@ Position::Position(std::string fen_position) {
         }
 
         if (c >= '1' && c <= '8') {
-            file += c - '0';
+            file = (char) (file + c - (int) '0');
             continue;
         }
 
