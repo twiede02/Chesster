@@ -1,19 +1,9 @@
-#include <chrono>
-#include <cstdlib>
-#include <ctime>
-#include <fstream>
-#include <iostream>
-#include <random>
 #include <search.h>
-#include <sstream>
-#include <string>
-#include <unordered_map>
-#include <vector>
-
+#include "zobrist.h"
 #include "book.h"
 #include "perft.h"
 
-void handleSetOption(const std::string &optionName,
+inline void handleSetOption(const std::string &optionName,
         const std::string &optionValue) {
     if (optionName == "Threads") {
         std::cout << "info string Threads option is fixed to 1" << std::endl;
@@ -29,7 +19,7 @@ void handleSetOption(const std::string &optionName,
     }
 }
 
-void handlePosition(const std::string &positionData) {
+inline void handlePosition(const std::string &positionData) {
     std::istringstream iss(positionData);
     std::string token;
     iss >> token; // position type
@@ -78,7 +68,7 @@ void handlePosition(const std::string &positionData) {
     }
 }
 
-void handleGo(const std::string &goData) {
+inline void handleGo(const std::string &goData) {
     // Implement move calculation logic
     if (p.move_history.size() < 16) {
         std::string res = my_book.get_random_next_move(p.move_history);
@@ -154,7 +144,7 @@ void handleGo(const std::string &goData) {
     std::cout << "\n";
 }
 
-void uciloop() {
+inline void uciloop() {
     std::string input;
     while (true) {
         std::getline(std::cin, input);
@@ -167,6 +157,7 @@ void uciloop() {
             load_book("../books/8move_balanced.txt");
             std::cout << "uciok\n";
         } else if (input == "isready") {
+            initialize_zobrist();
             std::cout << "readyok\n";
         } else if (input.rfind("setoption", 0) == 0) {
             // Parse setoption command
