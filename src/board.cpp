@@ -6,7 +6,6 @@
 #include "perft.h"
 #include "utils.h"
 
-uint64_t zobrist_table[12][64];
 // std::unordered_map<uint64_t, int> transposition_table(1 << 20);
 
 Position::Position() {
