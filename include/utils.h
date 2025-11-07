@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstdint>
 #include <cassert>
 #include <iostream>
 #include <optional>
@@ -119,9 +120,9 @@ union long_double {
     long y;
 };
 
-int inline fast_log_2(double num) {
-    union long_double x = {num};
-    return ((x.y >> 52) + 1) & 0x3ff;
+int inline fast_log_2(uint64_t num) {
+    auto t = __builtin_clzl(num | 1);
+    return 63 - t;
 }
 
 void inline print_move(Move m) {
