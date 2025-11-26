@@ -1,7 +1,5 @@
 #pragma once
 
-#include <cstdlib>
-#include <ctime> 
 #include <fstream> 
 #include <iostream> 
 #include <sstream>
@@ -64,7 +62,7 @@ class Trie {
 Trie my_book;
 Position p("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
 
-bool load_book(std::string filename) {
+inline bool load_book(std::string filename) {
     std::ifstream file(filename);
 
     if (!file.is_open()) {

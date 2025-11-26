@@ -192,8 +192,10 @@ inline void uciloop() {
             handleGo(goData);
         } else if (input == "quit") {
             break;
+        } else if (input.empty()) {
+            break;
         } else {
-            std::cerr << "Unknown command: " << input << std::endl;
+            std::cerr << "[Unknown command: " << input << "]" << std::endl;
         }
     }
 }
