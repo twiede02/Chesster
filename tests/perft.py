@@ -50,7 +50,6 @@ def run_perft_tests(engine_path):
         ("r4rk1/1pp1qppp/p1np1n2/2b1p1B1/2B1P1b1/P1NP1N2/1PP1QPPP/R4RK1 w - - 0 10", 9, 490154852788714, "Pos 6 Depth 9"),
     ]
     
-    # Start the engine process
     engine = subprocess.Popen(
         engine_path,
         stdin=subprocess.PIPE,
@@ -79,7 +78,6 @@ def run_perft_tests(engine_path):
             output.append(line)
         return "\n".join(output)
     
-    # Send UCI initialization commands
     send_command("uci")
     while True:
         line = engine.stdout.readline().strip()
@@ -93,7 +91,6 @@ def run_perft_tests(engine_path):
     print("Test Name                      | Status  | Time (s)")
     print("---------------------------------------------")
     
-    # Run test cases directly
     for fen, depth, expected_nodes, test_name in test_cases:
         if args.mode == "fast" and expected_nodes > 1000000:
             continue
@@ -116,11 +113,9 @@ def run_perft_tests(engine_path):
         
     print("=============================================")
     
-    # Close the engine process
     send_command("quit")
     engine.terminate()
 
-# Parse command-line arguments
 parser = argparse.ArgumentParser(description="Run tests in fast or slow mode.")
 parser.add_argument("mode", choices=["fast", "slow"], help="Choose mode: fast or slow")
 args = parser.parse_args()

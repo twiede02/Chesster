@@ -5,14 +5,48 @@
 
 import csv
 import subprocess
+import argparse
+import random
+import time
+
+seed = int(time.time_ns())
+random.seed(seed)
 
 RED = "\033[31m"
 GREEN = "\033[32m"
 RESET = "\033[0m"
 
-total_tests = 100
+total_load = 10
+total_tests = 10
+random_testing = False
+movetime = 300
 
-def load_column_from_csv(file_path, column_number, limit=10):
+parser = argparse.ArgumentParser(description="Runs puzzles, optional flags are '--load', '--use', '--movetime'")
+parser.add_argument('--load', type=int, help='How many puzzles should be loaded')
+parser.add_argument('--use', type=int, help='How many puzzles should be testet')
+parser.add_argument('--movetime', type=int, help='Engine\'s time per move in ms')
+parser.add_argument('--engine_path', type=str, required=True, help='Path to the engine')
+parser.add_argument('--table_path', type=str, required=True, help='Path to the puzzles table')
+
+args = parser.parse_args()
+
+engine_path = args.engine_path
+file_path = args.table_path
+
+if args.load:
+    total_load = args.load
+if args.use:
+    total_tests = args.use
+if args.movetime:
+    movetime = args.movetime
+
+if total_load < total_tests:
+    total_load = total_tests
+if total_tests != total_load:
+    random_testing = True
+
+
+def load_column_from_csv(file_path, column_number, limit):
     data = []
 
     try:
@@ -39,9 +73,8 @@ def load_column_from_csv(file_path, column_number, limit=10):
         return None
 
 
-file_path = '../lichess_db_puzzle.csv'
-fen_data = load_column_from_csv(file_path, 1, total_tests)
-move_data = load_column_from_csv(file_path, 2, total_tests)
+fen_data = load_column_from_csv(file_path, 1, total_load)
+move_data = load_column_from_csv(file_path, 2, total_load)
 
 if fen_data is not None:
     print("Loaded FEN Column:", fen_data)
@@ -51,7 +84,7 @@ if move_data is not None:
 
 def start_engine():
     return subprocess.Popen(
-        ["./build/chesster"],
+        [engine_path],
         stdin=subprocess.PIPE,
         stdout=subprocess.PIPE,
         text=True,
@@ -102,11 +135,29 @@ if fen_data is not None and move_data is not None:
     send_command("isready")
     wait_for_output("readyok")
 
+    if random_testing:
+        print(f"Using seed {seed}\n")
+    else:
+        print(f"No random testing, testing the first {total_tests} tests\n")
+
     print("\nStarting evaluation...\n")
 
     correct_counter = 0
 
-    for fen, solution in zip(fen_data, move_data):
+    i = 0
+
+    start = time.perf_counter()
+
+    for j in range(total_tests):
+    # for fen, solution in zip(fen_data, move_data):
+        if random_testing:
+            i = random.randrange(0, total_tests)
+        else:
+            i = j
+
+        fen = fen_data[i]
+        solution = move_data[i]
+
         print("======================================")
         print("FEN:", fen)
         print("Solution:", solution)
@@ -121,7 +172,7 @@ if fen_data is not None and move_data is not None:
             send_cmd(engine, cmd)
 
             if i % 2 == 1:
-                send_cmd(engine, "go movetime 1000")
+                send_cmd(engine, f"go movetime {movetime}")
                 bestmove = read_bestmove(engine)
                 expected = solution_moves[i]
 
@@ -140,4 +191,13 @@ if fen_data is not None and move_data is not None:
             print(f"{GREEN}✔ Puzzle solved completely!{RESET}")
             correct_counter += 1
 
-print(f"Solved {correct_counter} out of {total_tests}")
+
+end = time.perf_counter()
+print(f"\nTook {end - start:.3f} seconds\n")
+
+print(f"Solved {correct_counter} out of {total_tests}", end="")
+if random_testing:
+    print(f", randomly chosen from {total_load}")
+else:
+    print()
+
