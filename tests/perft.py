@@ -105,7 +105,8 @@ def run_perft_tests(engine_path):
         
         match = re.search(r"Nodes:\s*(\d+)", response)
         if match and int(match.group(1)) == expected_nodes:
-            print(f"{test_name:<30} | Passed  | {elapsed_time:.3f}")
+            nps = expected_nodes / elapsed_time
+            print(f"{test_name:<30} | Passed  | {elapsed_time:.3f} | {nps:.0f} nps")
         else:
             print(f"{test_name:<30} | Failed  | {elapsed_time:.3f}")
             print(f"Expected: {expected_nodes}, Got: {match.group(1) if match else 'N/A'}")
