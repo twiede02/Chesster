@@ -7,27 +7,31 @@
 #include <complex>
 #include <optional>
 
-std::vector<Move> order_moves(Position &p, std::vector<Move> moves) {
-    std::vector<Move> checks;
-    std::vector<Move> captures;
-    std::vector<Move> no_captures;
+void order_moves(Position &p, Movelist& moves) {
+    Movelist checks;
+    Movelist captures;
+    Movelist no_captures;
     for (auto &m : moves) {
         p.make_move(m);
         if (p.is_check()) {
-            checks.push_back(m);
+            checks.add(m);
             p.unmake_move();
             continue;
         }
         p.unmake_move();
         if (p.piece_table[m.to] != Piece::Empty)
-            captures.push_back(m);
+            captures.add(m);
         else
-            no_captures.push_back(m);
+            no_captures.add(m);
     }
 
-    captures.insert(captures.end(), no_captures.begin(), no_captures.end());
-    checks.insert(checks.end(), captures.begin(), captures.end());
-    return checks;
+    moves.clear();
+    for (auto& m : checks)
+        moves.add(m);
+    for (auto& m : captures)
+        moves.add(m);
+    for (auto& m : no_captures)
+        moves.add(m);
 }
 
 std::optional<int> search_captures(
@@ -44,7 +48,7 @@ std::optional<int> search_captures(
     alpha = std::max(evaluation, alpha);
 
     // generate captures
-    std::vector<Move> moves = generate_captures(p);
+    Movelist moves = generate_captures(p);
     if (moves.size() == 0) {
         // basicly checks for mate
         if (p.position_is_legal())
@@ -81,8 +85,8 @@ minimax(Position &p, int depth, Move &best_move, int starting_depth, int alpha,
 
     int max = alpha;
 
-    std::vector<Move> moves = generate_moves(p);
-    moves = order_moves(p, moves);
+    Movelist moves = generate_moves(p);
+    order_moves(p, moves);
     if (moves.size() == 0) {
         // basicly checks for mate
         if (p.position_is_legal())

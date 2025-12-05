@@ -19,6 +19,7 @@ struct Move {
         previous_en_passent_square(-1), castling(Castling::None),
         rook_destroyed_castle(false), king_destroyed_short_castle(false),
         king_destroyed_long_castle(false) {}
+    Move() {}
     int from;
     int to;
     Piece promotion;
@@ -29,6 +30,30 @@ struct Move {
     bool rook_destroyed_castle;
     bool king_destroyed_short_castle;
     bool king_destroyed_long_castle;
+};
+
+class Movelist {
+   public:
+    Movelist() {}
+
+    Move* begin() { return &moves_[0]; }
+    const Move* begin() const { return &moves_[0]; }
+
+    Move* end() { return &moves_[size_]; }
+    const Move* end() const { return &moves_[size_]; }
+
+    void add (Move& m) {
+        moves_[size_] = m;
+        size_++;
+    }
+
+    int size() const { return size_; }
+
+    void clear() { size_ = 0; }
+
+   private:
+    Move moves_[256];
+    int size_ = 0;
 };
 
 struct TimeControl {

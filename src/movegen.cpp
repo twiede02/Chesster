@@ -17,7 +17,7 @@ bool is_move_valid(Move &m, Position &p) {
     return res;
 }
 
-std::vector<Move> &generate_pawn_moves(std::vector<Move> &res, Position &p) {
+void generate_pawn_moves(Movelist &res, Position &p) {
     uint64_t white_pawns_starting_mask = 0x000000000000FF00ULL;
     uint64_t black_pawns_starting_mask = 0x00FF000000000000ULL;
 
@@ -50,20 +50,20 @@ std::vector<Move> &generate_pawn_moves(std::vector<Move> &res, Position &p) {
         m.to = p.side_to_move == Color::White ? index + 8 : index - 8;
         if (m.to < 56 && m.to > 7) {
             if (is_move_valid(m, p))
-                res.push_back(m);
+                res.add(m);
         } else {
             m.promotion = Piece::Queen;
             if (is_move_valid(m, p))
-                res.push_back(m);
+                res.add(m);
             m.promotion = Piece::Knight;
             if (is_move_valid(m, p))
-                res.push_back(m);
+                res.add(m);
             m.promotion = Piece::Rook;
             if (is_move_valid(m, p))
-                res.push_back(m);
+                res.add(m);
             m.promotion = Piece::Bishop;
             if (is_move_valid(m, p))
-                res.push_back(m);
+                res.add(m);
         }
 
         pushable_pawns ^= 1ULL << index;
@@ -75,7 +75,7 @@ std::vector<Move> &generate_pawn_moves(std::vector<Move> &res, Position &p) {
         Move m(index, index);
         m.to = p.side_to_move == Color::White ? index + 16 : index - 16;
         if (is_move_valid(m, p))
-            res.push_back(m);
+            res.add(m);
 
         double_pushable_pawns ^= 1ULL << index;
     }
@@ -94,20 +94,20 @@ std::vector<Move> &generate_pawn_moves(std::vector<Move> &res, Position &p) {
                 m.captured_piece = p.piece_table[attacked_index];
                 if (attacked_index < 56 && attacked_index > 7) {
                     if (is_move_valid(m, p))
-                        res.push_back(m);
+                        res.add(m);
                 } else {
                     m.promotion = Piece::Queen;
                     if (is_move_valid(m, p))
-                        res.push_back(m);
+                        res.add(m);
                     m.promotion = Piece::Knight;
                     if (is_move_valid(m, p))
-                        res.push_back(m);
+                        res.add(m);
                     m.promotion = Piece::Rook;
                     if (is_move_valid(m, p))
-                        res.push_back(m);
+                        res.add(m);
                     m.promotion = Piece::Bishop;
                     if (is_move_valid(m, p))
-                        res.push_back(m);
+                        res.add(m);
                 }
             }
         }
@@ -122,20 +122,20 @@ std::vector<Move> &generate_pawn_moves(std::vector<Move> &res, Position &p) {
                 m.captured_piece = p.piece_table[attacked_index];
                 if (attacked_index < 56 && attacked_index > 7) {
                     if (is_move_valid(m, p))
-                        res.push_back(m);
+                        res.add(m);
                 } else {
                     m.promotion = Piece::Queen;
                     if (is_move_valid(m, p))
-                        res.push_back(m);
+                        res.add(m);
                     m.promotion = Piece::Knight;
                     if (is_move_valid(m, p))
-                        res.push_back(m);
+                        res.add(m);
                     m.promotion = Piece::Rook;
                     if (is_move_valid(m, p))
-                        res.push_back(m);
+                        res.add(m);
                     m.promotion = Piece::Bishop;
                     if (is_move_valid(m, p))
-                        res.push_back(m);
+                        res.add(m);
                 }
             }
         }
@@ -153,7 +153,7 @@ std::vector<Move> &generate_pawn_moves(std::vector<Move> &res, Position &p) {
                     p.color_table[from_index] == p.side_to_move) {
                 Move m(from_index, p.en_passent_square);
                 if (is_move_valid(m, p))
-                    res.push_back(m);
+                    res.add(m);
             }
         }
         if (p.en_passent_square % 8 > 0) {
@@ -163,15 +163,13 @@ std::vector<Move> &generate_pawn_moves(std::vector<Move> &res, Position &p) {
                     p.color_table[from_index] == p.side_to_move) {
                 Move m(from_index, p.en_passent_square);
                 if (is_move_valid(m, p))
-                    res.push_back(m);
+                    res.add(m);
             }
         }
     }
-
-    return res;
 }
 
-std::vector<Move> &generate_knight_moves(std::vector<Move> &res, Position &p) {
+void generate_knight_moves(Movelist &res, Position &p) {
     uint64_t knights =
         p.side_to_move == Color::White ? p.white_knights : p.black_knights;
 
@@ -190,7 +188,7 @@ std::vector<Move> &generate_knight_moves(std::vector<Move> &res, Position &p) {
             if (p.piece_table[current_index] == Piece::Empty) {
                 Move m(index, current_index);
                 if (is_move_valid(m, p))
-                    res.push_back(m);
+                    res.add(m);
             } else if (p.color_table[current_index] != p.side_to_move) {
                 // capture
                 Move m(index, current_index);
@@ -198,18 +196,16 @@ std::vector<Move> &generate_knight_moves(std::vector<Move> &res, Position &p) {
                     m.captured_piece = p.piece_table[current_index];
                 }
                 if (is_move_valid(m, p))
-                    res.push_back(m);
+                    res.add(m);
             }
             possible_squares ^= 1ULL << current_index;
         }
 
         knights ^= 1ULL << index;
     }
-
-    return res;
 }
 
-std::vector<Move> &generate_rook_moves(std::vector<Move> &res, Position &p) {
+void generate_rook_moves(Movelist &res, Position &p) {
     uint64_t rooks =
         p.side_to_move == Color::White ? p.white_rooks : p.black_rooks;
 
@@ -230,7 +226,7 @@ std::vector<Move> &generate_rook_moves(std::vector<Move> &res, Position &p) {
                 offset = left_steps + 1;
             }
             if (is_move_valid(m, p))
-                res.push_back(m);
+                res.add(m);
         }
 
         for (int offset = 1; offset <= right_steps; offset++) {
@@ -240,7 +236,7 @@ std::vector<Move> &generate_rook_moves(std::vector<Move> &res, Position &p) {
                 offset = right_steps + 1;
             }
             if (is_move_valid(m, p))
-                res.push_back(m);
+                res.add(m);
         }
 
         for (int offset = 1; offset <= up_steps; offset++) {
@@ -250,7 +246,7 @@ std::vector<Move> &generate_rook_moves(std::vector<Move> &res, Position &p) {
                 offset = up_steps + 1;
             }
             if (is_move_valid(m, p))
-                res.push_back(m);
+                res.add(m);
         }
 
         for (int offset = 1; offset <= down_steps; offset++) {
@@ -260,16 +256,14 @@ std::vector<Move> &generate_rook_moves(std::vector<Move> &res, Position &p) {
                 offset = down_steps + 1;
             }
             if (is_move_valid(m, p))
-                res.push_back(m);
+                res.add(m);
         }
 
         rooks ^= 1ULL << index;
     }
-
-    return res;
 }
 
-std::vector<Move> &generate_bishop_moves(std::vector<Move> &res, Position &p) {
+void generate_bishop_moves(Movelist &res, Position &p) {
     uint64_t bishops =
         p.side_to_move == Color::White ? p.white_bishops : p.black_bishops;
 
@@ -290,7 +284,7 @@ std::vector<Move> &generate_bishop_moves(std::vector<Move> &res, Position &p) {
                 offset = left_down_steps + 1;
             }
             if (is_move_valid(m, p))
-                res.push_back(m);
+                res.add(m);
         }
 
         for (int offset = 1; offset <= left_up_steps; offset++) {
@@ -300,7 +294,7 @@ std::vector<Move> &generate_bishop_moves(std::vector<Move> &res, Position &p) {
                 offset = left_up_steps + 1;
             }
             if (is_move_valid(m, p))
-                res.push_back(m);
+                res.add(m);
         }
 
         for (int offset = 1; offset <= right_down_steps; offset++) {
@@ -310,7 +304,7 @@ std::vector<Move> &generate_bishop_moves(std::vector<Move> &res, Position &p) {
                 offset = right_down_steps + 1;
             }
             if (is_move_valid(m, p))
-                res.push_back(m);
+                res.add(m);
         }
 
         for (int offset = 1; offset <= right_up_steps; offset++) {
@@ -320,16 +314,14 @@ std::vector<Move> &generate_bishop_moves(std::vector<Move> &res, Position &p) {
                 offset = right_up_steps + 1;
             }
             if (is_move_valid(m, p))
-                res.push_back(m);
+                res.add(m);
         }
 
         bishops ^= 1ULL << index;
     }
-
-    return res;
 }
 
-std::vector<Move> &generate_queen_moves(std::vector<Move> &res, Position &p) {
+void generate_queen_moves(Movelist &res, Position &p) {
     uint64_t queens =
         p.side_to_move == Color::White ? p.white_queens : p.black_queens;
 
@@ -356,7 +348,7 @@ std::vector<Move> &generate_queen_moves(std::vector<Move> &res, Position &p) {
                 offset = left_steps + 1;
             }
             if (is_move_valid(m, p))
-                res.push_back(m);
+                res.add(m);
         }
 
         for (int offset = 1; offset <= right_steps; offset++) {
@@ -366,7 +358,7 @@ std::vector<Move> &generate_queen_moves(std::vector<Move> &res, Position &p) {
                 offset = right_steps + 1;
             }
             if (is_move_valid(m, p))
-                res.push_back(m);
+                res.add(m);
         }
 
         for (int offset = 1; offset <= up_steps; offset++) {
@@ -376,7 +368,7 @@ std::vector<Move> &generate_queen_moves(std::vector<Move> &res, Position &p) {
                 offset = up_steps + 1;
             }
             if (is_move_valid(m, p))
-                res.push_back(m);
+                res.add(m);
         }
 
         for (int offset = 1; offset <= down_steps; offset++) {
@@ -386,7 +378,7 @@ std::vector<Move> &generate_queen_moves(std::vector<Move> &res, Position &p) {
                 offset = down_steps + 1;
             }
             if (is_move_valid(m, p))
-                res.push_back(m);
+                res.add(m);
         }
 
         for (int offset = 1; offset <= left_down_steps; offset++) {
@@ -396,7 +388,7 @@ std::vector<Move> &generate_queen_moves(std::vector<Move> &res, Position &p) {
                 offset = left_down_steps + 1;
             }
             if (is_move_valid(m, p))
-                res.push_back(m);
+                res.add(m);
         }
 
         for (int offset = 1; offset <= left_up_steps; offset++) {
@@ -406,7 +398,7 @@ std::vector<Move> &generate_queen_moves(std::vector<Move> &res, Position &p) {
                 offset = left_up_steps + 1;
             }
             if (is_move_valid(m, p))
-                res.push_back(m);
+                res.add(m);
         }
 
         for (int offset = 1; offset <= right_down_steps; offset++) {
@@ -416,7 +408,7 @@ std::vector<Move> &generate_queen_moves(std::vector<Move> &res, Position &p) {
                 offset = right_down_steps + 1;
             }
             if (is_move_valid(m, p))
-                res.push_back(m);
+                res.add(m);
         }
 
         for (int offset = 1; offset <= right_up_steps; offset++) {
@@ -426,15 +418,14 @@ std::vector<Move> &generate_queen_moves(std::vector<Move> &res, Position &p) {
                 offset = right_up_steps + 1;
             }
             if (is_move_valid(m, p))
-                res.push_back(m);
+                res.add(m);
         }
 
         queens ^= 1ULL << index;
     }
-    return res;
 }
 
-std::vector<Move> &generate_king_moves(std::vector<Move> &res, Position &p) {
+void generate_king_moves(Movelist &res, Position &p) {
     uint64_t king =
         p.side_to_move == Color::White ? p.white_kings : p.black_kings;
     int index = fast_log_2(king);
@@ -447,7 +438,7 @@ std::vector<Move> &generate_king_moves(std::vector<Move> &res, Position &p) {
             Move m(index, current_index);
 
             if (is_move_valid(m, p))
-                res.push_back(m);
+                res.add(m);
         } else if (p.color_table[current_index] != p.side_to_move &&
                 p.color_table[current_index] != Color::Empty) {
             // capture
@@ -455,7 +446,7 @@ std::vector<Move> &generate_king_moves(std::vector<Move> &res, Position &p) {
             m.captured_piece = p.piece_table[current_index];
 
             if (is_move_valid(m, p))
-                res.push_back(m);
+                res.add(m);
         }
         moves ^= 1ULL << current_index;
     }
@@ -464,11 +455,11 @@ std::vector<Move> &generate_king_moves(std::vector<Move> &res, Position &p) {
     // filtered for legality already
 
     if (p.is_check())
-        return res;
+        return;
 
     if (p.side_to_move == Color::White) {
         if (p.piece_table[4] != Piece::King)
-            return res;
+            return;
         if (p.white_kingside_castling_right) {
             bool can_castle_kingside = p.piece_table[5] == Piece::Empty &&
                 p.piece_table[6] == Piece::Empty &&
@@ -490,7 +481,7 @@ std::vector<Move> &generate_king_moves(std::vector<Move> &res, Position &p) {
             if (can_castle_kingside) {
                 Move m(4, 6);
                 if (is_move_valid(m, p))
-                    res.push_back(m);
+                    res.add(m);
             }
         }
 
@@ -516,12 +507,12 @@ std::vector<Move> &generate_king_moves(std::vector<Move> &res, Position &p) {
             if (can_castle_queenside) {
                 Move m(4, 2);
                 if (is_move_valid(m, p))
-                    res.push_back(m);
+                    res.add(m);
             }
         }
     } else {
         if (p.piece_table[60] != Piece::King)
-            return res;
+            return;
         if (p.black_kingside_castling_right) {
             bool can_castle_kingside = p.piece_table[61] == Piece::Empty &&
                 p.piece_table[62] == Piece::Empty &&
@@ -543,7 +534,7 @@ std::vector<Move> &generate_king_moves(std::vector<Move> &res, Position &p) {
             if (can_castle_kingside) {
                 Move m(60, 62);
                 if (is_move_valid(m, p))
-                    res.push_back(m);
+                    res.add(m);
             }
         }
 
@@ -569,34 +560,32 @@ std::vector<Move> &generate_king_moves(std::vector<Move> &res, Position &p) {
             if (can_castle_queenside) {
                 Move m(60, 58);
                 if (is_move_valid(m, p))
-                    res.push_back(m);
+                    res.add(m);
             }
         }
     }
+}
+
+Movelist generate_moves(Position &p) {
+    Movelist res;
+
+    generate_pawn_moves(res, p);
+    generate_knight_moves(res, p);
+    generate_rook_moves(res, p);
+    generate_bishop_moves(res, p);
+    generate_queen_moves(res, p);
+    generate_king_moves(res, p);
 
     return res;
 }
 
-std::vector<Move> generate_moves(Position &p) {
-    std::vector<Move> res;
-
-    res = generate_pawn_moves(res, p);
-    res = generate_knight_moves(res, p);
-    res = generate_rook_moves(res, p);
-    res = generate_bishop_moves(res, p);
-    res = generate_queen_moves(res, p);
-    res = generate_king_moves(res, p);
-
-    return res;
-}
-
-std::vector<Move> generate_captures(Position &p) {
-    std::vector<Move> moves = generate_moves(p);
-    std::vector<Move> res;
+Movelist generate_captures(Position &p) {
+    Movelist moves = generate_moves(p);
+    Movelist res;
 
     for (auto &m : moves)
         if (p.piece_table[m.to] != Piece::Empty)
-            res.push_back(m);
+            res.add(m);
 
     return res;
 }

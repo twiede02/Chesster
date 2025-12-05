@@ -5,7 +5,7 @@
 #include <optional>
 #include <vector>
 
-std::vector<Move> order_moves(Position &p, std::vector<Move> moves);
+void order_moves(Position &p, Movelist& moves);
 
 std::optional<Move>
 search(Position &p, int depth,

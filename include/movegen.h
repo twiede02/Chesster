@@ -5,20 +5,20 @@
 #include "board.h"
 #include "utils.h"
 
-std::vector<Move> &generate_pawn_moves(std::vector<Move> &res, Position &p);
+void generate_pawn_moves(Movelist &res, Position &p);
 
-std::vector<Move> &generate_knight_moves(std::vector<Move> &res, Position &p);
+void generate_knight_moves(Movelist &res, Position &p);
 
-std::vector<Move> &generate_rook_moves(std::vector<Move> &res, Position &p);
+void generate_rook_moves(Movelist &res, Position &p);
 
-std::vector<Move> &generate_bishop_moves(std::vector<Move> &res, Position &p);
+void generate_bishop_moves(Movelist &res, Position &p);
 
-std::vector<Move> &generate_queen_moves(std::vector<Move> &res, Position &p);
+void generate_queen_moves(Movelist &res, Position &p);
 
-std::vector<Move> &generate_king_moves(std::vector<Move> &res, Position &p);
+void generate_king_moves(Movelist &res, Position &p);
 
-std::vector<Move> generate_moves(Position &p);
+Movelist generate_moves(Position &p);
 
-std::vector<Move> generate_captures(Position &p);
+Movelist generate_captures(Position &p);
 
 bool is_move_valid(Move &m, Position &p);
