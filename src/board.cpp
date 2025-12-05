@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <bits/stdc++.h>
 #include <sstream>
 
@@ -9,13 +10,21 @@
 // std::unordered_map<uint64_t, int> transposition_table(1 << 20);
 
 Position::Position() {
-    piece_table.assign(64, Piece::Empty);
-    color_table.assign(64, Color::Empty);
+    for (int i =  0; i < 64; i++)
+        piece_table[i] = Piece::Empty;
+    for (int i =  0; i < 64; i++)
+        color_table[i] = Color::Empty;
+    // piece_table.assign(64, Piece::Empty);
+    // color_table.assign(64, Color::Empty);
 }
 
 Position::Position(std::string fen_position) {
-    piece_table.assign(64, Piece::Empty);
-    color_table.assign(64, Color::Empty);
+    for (int i =  0; i < 64; i++)
+        piece_table[i] = Piece::Empty;
+    for (int i =  0; i < 64; i++)
+        color_table[i] = Color::Empty;
+    // piece_table.assign(64, Piece::Empty);
+    // color_table.assign(64, Color::Empty);
 
     std::stringstream fen_stream(fen_position);
 
@@ -135,6 +144,66 @@ Position::Position(std::string fen_position) {
                 black_queenside_castling_right = true;
         }
     }
+}
+
+PackedPosition Position::pack() {
+    PackedPosition res;
+
+    res.white_pawns = white_pawns;
+    res.white_knights = white_knights;
+    res.white_bishops = white_bishops;
+    res.white_rooks = white_rooks;
+    res.white_queens = white_queens;
+    res.white_kings = white_kings;
+
+    res.black_pawns = black_pawns;
+    res.black_knights = black_knights;
+    res.black_bishops = black_bishops;
+    res.black_rooks = black_rooks;
+    res.black_queens = black_queens;
+    res.black_kings = black_kings;
+
+    res.empty_squares = empty_squares;
+    res.occupied_squares = occupied_squares;
+
+    res.white_kingside_castling_right = white_kingside_castling_right;
+    res.white_queenside_castling_right = white_queenside_castling_right;
+    res.black_kingside_castling_right = black_kingside_castling_right;
+    res.black_queenside_castling_right = black_queenside_castling_right;
+    res.side_to_move = side_to_move;
+
+    res.moves_since_panwmove_or_capture = moves_since_panwmove_or_capture;
+    res.en_passent_square = en_passent_square;
+
+    return res;
+}
+
+void Position::unpack(PackedPosition& other) {
+    white_pawns = other.white_pawns;
+    white_knights = other.white_knights;
+    white_bishops = other.white_bishops;
+    white_rooks = other.white_rooks;
+    white_queens = other.white_queens;
+    white_kings = other.white_kings;
+
+    black_pawns = other.black_pawns;
+    black_knights = other.black_knights;
+    black_bishops = other.black_bishops;
+    black_rooks = other.black_rooks;
+    black_queens = other.black_queens;
+    black_kings = other.black_kings;
+
+    empty_squares = other.empty_squares;
+    occupied_squares = other.occupied_squares;
+
+    white_kingside_castling_right = other.white_kingside_castling_right;
+    white_queenside_castling_right = other.white_queenside_castling_right;
+    black_kingside_castling_right = other.black_kingside_castling_right;
+    black_queenside_castling_right = other.black_queenside_castling_right;
+    side_to_move = other.side_to_move;
+
+    moves_since_panwmove_or_capture = other.moves_since_panwmove_or_capture;
+    en_passent_square = other.en_passent_square;
 }
 
 bool Position::is_check() {
@@ -500,7 +569,7 @@ void Position::set_piece(Piece piece, int index, Color col) {
     }
 }
 
-void Position::make_move(Move m) {
+void Position::make_move(Move& m) {
     Piece moving_piece = piece_table[m.from];
 
     if (moving_piece == Piece::Empty) {
@@ -627,14 +696,14 @@ void Position::make_move(Move m) {
     } else {
         side_to_move = Color::White;
     }
-    move_history.push_back(m);
-    hash_history.push_back(hash);
+    move_history.add(m);
+    hash_history.add(hash);
 }
 
 void Position::unmake_move() {
-    Move m = move_history.back();
-    move_history.pop_back();
-    hash_history.pop_back();
+    Move m = move_history.last();
+    move_history.pop_last();
+    hash_history.pop_last();
 
     moves_since_panwmove_or_capture = m.previous_moves_since_pawnmove_or_capture;
 

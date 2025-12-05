@@ -40,7 +40,7 @@ int evaluate_material(Position &p) {
 int evaluate(Position &p) {
     int repetitions = 0;
     for (auto current_hash : p.hash_history) {
-        if (current_hash == p.hash_history.back())
+        if (current_hash == p.hash_history.last())
             repetitions++;
         if (repetitions >= 3)
             return -1;

@@ -41,7 +41,7 @@ struct PerftResults {
 
 class Perft {
     public:
-        Perft(Position pos);
+        Perft(Position& pos);
 
         Position p;
         PerftResults res;

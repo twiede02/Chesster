@@ -10,6 +10,6 @@ struct Magic {
     uint64_t* attacks;
 };
 
-extern std::vector<uint64_t> rook_magics;
-extern std::vector<uint64_t> bishop_magics;
+extern uint64_t rook_magics[64];
+extern uint64_t bishop_magics[64];
 

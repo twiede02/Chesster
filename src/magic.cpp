@@ -4,9 +4,9 @@
 #include <vector>
 
 
-std::vector<uint64_t> rook_magics = {
+uint64_t rook_magics[64] = {
 };
 
-std::vector<uint64_t> bishop_magics = {
+uint64_t bishop_magics[64] = {
 };
 

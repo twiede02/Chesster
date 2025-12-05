@@ -41,7 +41,7 @@ class Trie {
             }
         }
 
-        std::string get_random_next_move(std::vector<Move> history) {
+        std::string get_random_next_move(History<Move> history) {
             TrieNode *node = root;
             for (Move move : history) {
                 std::string move_string =

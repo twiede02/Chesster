@@ -6,7 +6,7 @@
 #include "perft.h"
 #include "utils.h"
 
-Perft::Perft(Position pos) { p = pos; }
+Perft::Perft(Position& pos) { p = pos; }
 
 uint64_t Perft::run_fast(int depth) {
     if (depth == 0) {
