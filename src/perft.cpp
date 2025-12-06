@@ -20,9 +20,9 @@ uint64_t Perft::run_fast(int depth) {
     uint64_t nodes = 0;
 
     for (auto m : move_list) {
-        p.make_move(m);
+        auto log = p.make_move(m);
         nodes += run_fast(depth - 1);
-        p.unmake_move();
+        p.unmake_move(log);
     }
 
     return nodes;
@@ -33,12 +33,12 @@ uint64_t Perft::run_debug(int depth) {
 
     uint64_t nodes = 0;
     for (auto m : move_list) {
-        p.make_move(m);
+        auto log = p.make_move(m);
         uint64_t local_nodes = run_fast(depth - 1);
         nodes += local_nodes;
         print_move_compact(m);
         std::cout << ": " << local_nodes << "\n";
-        p.unmake_move();
+        p.unmake_move(log);
     }
     return nodes;
 }
@@ -77,9 +77,9 @@ uint64_t Perft::run_wrapped(int depth) {
 
             res.number_of_castles += is_castle(p, m);
         }
-        p.make_move(m);
+        auto log = p.make_move(m);
         nodes += run_wrapped(depth - 1);
-        p.unmake_move();
+        p.unmake_move(log);
     }
 
     return nodes;

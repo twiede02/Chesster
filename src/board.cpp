@@ -569,7 +569,11 @@ void Position::set_piece(Piece piece, int index, Color col) {
     }
 }
 
-void Position::make_move(Move& m) {
+Movelog Position::make_move(Move& m) {
+    Movelog movelog;
+    movelog.previous_moves_since_pawnmove_or_capture = moves_since_panwmove_or_capture;
+    movelog.previous_en_passent_square = en_passent_square;
+
     Piece moving_piece = piece_table[m.from];
 
     if (moving_piece == Piece::Empty) {
@@ -698,14 +702,19 @@ void Position::make_move(Move& m) {
     }
     move_history.add(m);
     hash_history.add(hash);
+
+    movelog.from = m.from;
+    movelog.to = m.to;
+    return movelog;
 }
 
-void Position::unmake_move() {
+void Position::unmake_move(Movelog& previous) {
     Move m = move_history.last();
     move_history.pop_last();
     hash_history.pop_last();
 
-    moves_since_panwmove_or_capture = m.previous_moves_since_pawnmove_or_capture;
+    moves_since_panwmove_or_capture = previous.previous_moves_since_pawnmove_or_capture;
+    en_passent_square = m.previous_en_passent_square;
 
     // Important to note this happening here
     if (side_to_move == Color::White) {
@@ -730,13 +739,13 @@ void Position::unmake_move() {
     }
     if (m.rook_destroyed_castle) {
         if (side_to_move == Color::White) {
-            if (m.from == 7) {
+            if (previous.from == 7) {
                 white_kingside_castling_right = true;
             } else {
                 white_queenside_castling_right = true;
             }
         } else {
-            if (m.from == 63) {
+            if (previous.from == 63) {
                 black_kingside_castling_right = true;
             } else {
                 black_queenside_castling_right = true;
@@ -744,24 +753,22 @@ void Position::unmake_move() {
         }
     }
 
-    en_passent_square = m.previous_en_passent_square;
-
     if (m.castling == Castling::None) {
 
-        if (en_passent_square == m.to && piece_table[m.to] == Piece::Pawn) {
+        if (en_passent_square == previous.to && piece_table[previous.to] == Piece::Pawn) {
             int captured_pawn_index =
-                side_to_move == Color::White ? m.to - 8 : m.to + 8;
+                side_to_move == Color::White ? previous.to - 8 : previous.to + 8;
             set_piece(Piece::Pawn, captured_pawn_index,
                     side_to_move == Color::White ? Color::Black : Color::White);
         }
 
-        Piece moved_piece = piece_table[m.to];
+        Piece moved_piece = piece_table[previous.to];
         if (m.promotion != Piece::Empty)
             moved_piece = Piece::Pawn;
-        set_piece(moved_piece, m.from, side_to_move);
-        set_piece(Piece::Empty, m.to, Color::Empty);
+        set_piece(moved_piece, previous.from, side_to_move);
+        set_piece(Piece::Empty, previous.to, Color::Empty);
         if (m.captured_piece != Piece::Empty)
-            set_piece(m.captured_piece, m.to,
+            set_piece(m.captured_piece, previous.to,
                     side_to_move == Color::White ? Color::Black : Color::White);
 
     } else {

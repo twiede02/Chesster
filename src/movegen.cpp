@@ -10,10 +10,10 @@ bool is_move_valid(Move &m, Position &p) {
     if (p.side_to_move == p.color_table[m.to])
         return false;
     bool res = false;
-    p.make_move(m);
+    auto log = p.make_move(m);
     if (p.position_is_legal())
         res = true;
-    p.unmake_move();
+    p.unmake_move(log);
     return res;
 }
 
@@ -468,14 +468,14 @@ void generate_king_moves(Movelist &res, Position &p) {
 
             if (can_castle_kingside) {
                 Move m(4, 5);
-                p.make_move(m);
+                auto log = p.make_move(m);
                 can_castle_kingside &= p.position_is_legal();
-                p.unmake_move();
+                p.unmake_move(log);
 
                 m.to = 6;
-                p.make_move(m);
+                log = p.make_move(m);
                 can_castle_kingside &= p.position_is_legal();
-                p.unmake_move();
+                p.unmake_move(log);
             }
 
             if (can_castle_kingside) {
@@ -494,14 +494,14 @@ void generate_king_moves(Movelist &res, Position &p) {
 
             if (can_castle_queenside) {
                 Move m(4, 3);
-                p.make_move(m);
+                auto log = p.make_move(m);
                 can_castle_queenside &= p.position_is_legal();
-                p.unmake_move();
+                p.unmake_move(log);
 
                 m.to = 2;
-                p.make_move(m);
+                log = p.make_move(m);
                 can_castle_queenside &= p.position_is_legal();
-                p.unmake_move();
+                p.unmake_move(log);
             }
 
             if (can_castle_queenside) {
@@ -521,14 +521,14 @@ void generate_king_moves(Movelist &res, Position &p) {
 
             if (can_castle_kingside) {
                 Move m(60, 61);
-                p.make_move(m);
+                auto log = p.make_move(m);
                 can_castle_kingside &= p.position_is_legal();
-                p.unmake_move();
+                p.unmake_move(log);
 
                 m.to = 62;
-                p.make_move(m);
+                log = p.make_move(m);
                 can_castle_kingside &= p.position_is_legal();
-                p.unmake_move();
+                p.unmake_move(log);
             }
 
             if (can_castle_kingside) {
@@ -547,14 +547,14 @@ void generate_king_moves(Movelist &res, Position &p) {
 
             if (can_castle_queenside) {
                 Move m(60, 59);
-                p.make_move(m);
+                auto log = p.make_move(m);
                 can_castle_queenside &= p.position_is_legal();
-                p.unmake_move();
+                p.unmake_move(log);
 
                 m.to = 58;
-                p.make_move(m);
+                log = p.make_move(m);
                 can_castle_queenside &= p.position_is_legal();
-                p.unmake_move();
+                p.unmake_move(log);
             }
 
             if (can_castle_queenside) {

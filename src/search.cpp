@@ -12,13 +12,13 @@ void order_moves(Position &p, Movelist& moves) {
     Movelist captures;
     Movelist no_captures;
     for (auto &m : moves) {
-        p.make_move(m);
+        auto log = p.make_move(m);
         if (p.is_check()) {
             checks.add(m);
-            p.unmake_move();
+            p.unmake_move(log);
             continue;
         }
-        p.unmake_move();
+        p.unmake_move(log);
         if (p.piece_table[m.to] != Piece::Empty)
             captures.add(m);
         else
@@ -56,12 +56,12 @@ std::optional<int> search_captures(
         return 0;
     }
     for (auto &m : moves) {
-        p.make_move(m);
+        auto log = p.make_move(m);
         auto search_res = search_captures(p, -beta, -alpha, deadline);
         if (!search_res)
             return std::nullopt;
         evaluation = -*search_res;
-        p.unmake_move();
+        p.unmake_move(log);
 
         if (evaluation >= beta)
             break;
@@ -94,14 +94,14 @@ minimax(Position &p, int depth, Move &best_move, int starting_depth, int alpha,
         return 0;
     }
     for (auto &m : moves) {
-        p.make_move(m);
+        auto log = p.make_move(m);
         auto minimax_res =
             minimax(p, depth - 1, best_move, starting_depth, -beta, -max, deadline);
 
         if (!minimax_res)
             return std::nullopt;
         int score = -*minimax_res;
-        p.unmake_move();
+        p.unmake_move(log);
 
         if (score > max) {
             max = score;

@@ -81,6 +81,18 @@ struct PackedPosition {
     void unmake_move();
 };
 
+struct Movelog {
+    int from = -1;
+    int to = -1;
+    int previous_moves_since_pawnmove_or_capture = -1;
+    int previous_en_passent_square = -1;
+
+    bool destroyed_white_kingside_castling_right = false;
+    bool destroyed_white_queenside_castling_right = false;
+    bool destroyed_black_kingside_castling_right = false;
+    bool destroyed_black_queenside_castling_right = false;
+};
+
 struct Position {
     Position();
     Position(std::string fen_position);
@@ -135,9 +147,9 @@ struct Position {
 
     void set_piece(Piece piece, int index, Color col);
 
-    void make_move(Move& m);
+    Movelog make_move(Move& m);
 
-    void unmake_move();
+    void unmake_move(Movelog& previous);
 };
 
 extern uint64_t zobrist_table[12][64];
