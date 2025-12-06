@@ -38,49 +38,6 @@ private:
     std::size_t size_;
 };
 
-// TODO: use this for search to be nicer to the cache
-struct PackedPosition {
-    PackedPosition() {}
-
-    uint64_t white_pawns = 0ULL;
-    uint64_t white_knights = 0ULL;
-    uint64_t white_bishops = 0ULL;
-    uint64_t white_rooks = 0ULL;
-    uint64_t white_queens = 0ULL;
-    uint64_t white_kings = 0ULL;
-
-    uint64_t black_pawns = 0ULL;
-    uint64_t black_knights = 0ULL;
-    uint64_t black_bishops = 0ULL;
-    uint64_t black_rooks = 0ULL;
-    uint64_t black_queens = 0ULL;
-    uint64_t black_kings = 0ULL;
-
-    uint64_t empty_squares = ~0ULL;
-    uint64_t occupied_squares = 0ULL;
-
-    bool white_kingside_castling_right = false;
-    bool white_queenside_castling_right = false;
-    bool black_kingside_castling_right = false;
-    bool black_queenside_castling_right = false;
-    Color side_to_move = Color::White;
-
-    int moves_since_panwmove_or_capture = 0;
-    int en_passent_square = -1;
-
-    uint64_t hash = 0ULL;
-
-    bool is_check();
-
-    bool position_is_legal();
-
-    void set_piece(Piece piece, int index, Color col);
-
-    void make_move(Move& m);
-
-    void unmake_move();
-};
-
 struct Movelog {
     int from = -1;
     int to = -1;
@@ -137,9 +94,6 @@ struct Position {
     int en_passent_square = -1;
 
     uint64_t hash = 0ULL;
-
-    PackedPosition pack();
-    void unpack(PackedPosition& other);
 
     bool is_check();
 
