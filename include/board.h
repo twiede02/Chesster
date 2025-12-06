@@ -41,13 +41,14 @@ private:
 struct Movelog {
     int from = -1;
     int to = -1;
-    int previous_moves_since_pawnmove_or_capture = -1;
+    Piece promotion = Piece::Empty;
+    Piece captured_piece = Piece::Empty;
+    int previous_moves_since_pawnmove_or_capture = 0;
     int previous_en_passent_square = -1;
-
-    bool destroyed_white_kingside_castling_right = false;
-    bool destroyed_white_queenside_castling_right = false;
-    bool destroyed_black_kingside_castling_right = false;
-    bool destroyed_black_queenside_castling_right = false;
+    Castling castling = Castling::None;
+    bool rook_destroyed_castle = false;
+    bool king_destroyed_short_castle = false;
+    bool king_destroyed_long_castle = false;
 };
 
 struct Position {

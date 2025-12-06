@@ -510,9 +510,17 @@ void Position::set_piece(Piece piece, int index, Color col) {
 }
 
 Movelog Position::make_move(Move& m) {
-    Movelog movelog;
-    movelog.previous_moves_since_pawnmove_or_capture = moves_since_panwmove_or_capture;
+    Movelog movelog{};
+    movelog.from = m.from;
+    movelog.to = m.to;
+    movelog.promotion = m.promotion;
     movelog.previous_en_passent_square = en_passent_square;
+    movelog.previous_moves_since_pawnmove_or_capture = moves_since_panwmove_or_capture;
+    movelog.captured_piece = Piece::Empty;
+    movelog.castling = Castling::None;
+    movelog.king_destroyed_short_castle = false;
+    movelog.king_destroyed_long_castle = false;
+    movelog.rook_destroyed_castle = false;
 
     Piece moving_piece = piece_table[m.from];
 
@@ -533,13 +541,13 @@ Movelog Position::make_move(Move& m) {
     // Castling right tracking
     if (moving_piece == Piece::King) {
         if (side_to_move == Color::White) {
-            m.king_destroyed_short_castle = white_kingside_castling_right;
-            m.king_destroyed_long_castle = white_queenside_castling_right;
+            movelog.king_destroyed_short_castle = white_kingside_castling_right;
+            movelog.king_destroyed_long_castle = white_queenside_castling_right;
             white_kingside_castling_right = false;
             white_queenside_castling_right = false;
         } else {
-            m.king_destroyed_short_castle = black_kingside_castling_right;
-            m.king_destroyed_long_castle = black_queenside_castling_right;
+            movelog.king_destroyed_short_castle = black_kingside_castling_right;
+            movelog.king_destroyed_long_castle = black_queenside_castling_right;
             black_kingside_castling_right = false;
             black_queenside_castling_right = false;
         }
@@ -547,26 +555,26 @@ Movelog Position::make_move(Move& m) {
         if (side_to_move == Color::White) {
             if (white_kingside_castling_right) {
                 if (m.from == 7) {
-                    m.rook_destroyed_castle = true;
+                    movelog.rook_destroyed_castle = true;
                     white_kingside_castling_right = false;
                 }
             }
             if (white_queenside_castling_right) {
                 if (m.from == 0) {
-                    m.rook_destroyed_castle = true;
+                    movelog.rook_destroyed_castle = true;
                     white_queenside_castling_right = false;
                 }
             }
         } else {
             if (black_kingside_castling_right) {
                 if (m.from == 63) {
-                    m.rook_destroyed_castle = true;
+                    movelog.rook_destroyed_castle = true;
                     black_kingside_castling_right = false;
                 }
             }
             if (black_queenside_castling_right) {
                 if (m.from == 56) {
-                    m.rook_destroyed_castle = true;
+                    movelog.rook_destroyed_castle = true;
                     black_queenside_castling_right = false;
                 }
             }
@@ -580,7 +588,7 @@ Movelog Position::make_move(Move& m) {
         set_piece(Piece::Empty, captured_pawn_index, Color::Empty);
     }
 
-    m.previous_en_passent_square = en_passent_square;
+    movelog.previous_en_passent_square = en_passent_square;
     if (moving_piece == Piece::Pawn) {
         if (std::abs(m.from - m.to) == 16) {
             en_passent_square = m.from < m.to ? m.to - 8 : m.to + 8;
@@ -594,10 +602,8 @@ Movelog Position::make_move(Move& m) {
     // delete from initial square
     set_piece(Piece::Empty, m.from, Color::Empty);
 
-    m.previous_moves_since_pawnmove_or_capture = moves_since_panwmove_or_capture;
-
-    m.captured_piece = piece_table[m.to];
-    moves_since_panwmove_or_capture = m.captured_piece == Piece::Empty
+    movelog.captured_piece = piece_table[m.to];
+    moves_since_panwmove_or_capture = movelog.captured_piece == Piece::Empty
         ? moves_since_panwmove_or_capture + 1
         : 0;
     // insert to new square
@@ -610,26 +616,26 @@ Movelog Position::make_move(Move& m) {
             if (m.to == 6) {
                 set_piece(Piece::Empty, 7, Color::Empty);
                 set_piece(Piece::Rook, 5, Color::White);
-                m.castling = Castling::WhiteShort;
+                movelog.castling = Castling::WhiteShort;
                 white_kingside_castling_right = false;
             }
             if (m.to == 2) {
                 set_piece(Piece::Empty, 0, Color::Empty);
                 set_piece(Piece::Rook, 3, Color::White);
-                m.castling = Castling::WhiteLong;
+                movelog.castling = Castling::WhiteLong;
                 white_queenside_castling_right = false;
             }
         } else if (m.from == 60) {
             if (m.to == 62) {
                 set_piece(Piece::Empty, 63, Color::Empty);
                 set_piece(Piece::Rook, 61, Color::Black);
-                m.castling = Castling::BlackShort;
+                movelog.castling = Castling::BlackShort;
                 black_kingside_castling_right = false;
             }
             if (m.to == 58) {
                 set_piece(Piece::Empty, 56, Color::Empty);
                 set_piece(Piece::Rook, 59, Color::Black);
-                m.castling = Castling::BlackLong;
+                movelog.castling = Castling::BlackLong;
                 black_queenside_castling_right = false;
             }
         }
@@ -649,12 +655,11 @@ Movelog Position::make_move(Move& m) {
 }
 
 void Position::unmake_move(Movelog& previous) {
-    Move m = move_history.last();
     move_history.pop_last();
     hash_history.pop_last();
 
     moves_since_panwmove_or_capture = previous.previous_moves_since_pawnmove_or_capture;
-    en_passent_square = m.previous_en_passent_square;
+    en_passent_square = previous.previous_en_passent_square;
 
     // Important to note this happening here
     if (side_to_move == Color::White) {
@@ -663,21 +668,21 @@ void Position::unmake_move(Movelog& previous) {
         side_to_move = Color::White;
     }
 
-    if (m.king_destroyed_short_castle) {
+    if (previous.king_destroyed_short_castle) {
         if (side_to_move == Color::White) {
             white_kingside_castling_right = true;
         } else {
             black_kingside_castling_right = true;
         }
     }
-    if (m.king_destroyed_long_castle) {
+    if (previous.king_destroyed_long_castle) {
         if (side_to_move == Color::White) {
             white_queenside_castling_right = true;
         } else {
             black_queenside_castling_right = true;
         }
     }
-    if (m.rook_destroyed_castle) {
+    if (previous.rook_destroyed_castle) {
         if (side_to_move == Color::White) {
             if (previous.from == 7) {
                 white_kingside_castling_right = true;
@@ -693,7 +698,7 @@ void Position::unmake_move(Movelog& previous) {
         }
     }
 
-    if (m.castling == Castling::None) {
+    if (previous.castling == Castling::None) {
 
         if (en_passent_square == previous.to && piece_table[previous.to] == Piece::Pawn) {
             int captured_pawn_index =
@@ -703,16 +708,16 @@ void Position::unmake_move(Movelog& previous) {
         }
 
         Piece moved_piece = piece_table[previous.to];
-        if (m.promotion != Piece::Empty)
+        if (previous.promotion != Piece::Empty)
             moved_piece = Piece::Pawn;
         set_piece(moved_piece, previous.from, side_to_move);
         set_piece(Piece::Empty, previous.to, Color::Empty);
-        if (m.captured_piece != Piece::Empty)
-            set_piece(m.captured_piece, previous.to,
+        if (previous.captured_piece != Piece::Empty)
+            set_piece(previous.captured_piece, previous.to,
                     side_to_move == Color::White ? Color::Black : Color::White);
 
     } else {
-        switch (m.castling) {
+        switch (previous.castling) {
             case Castling::WhiteShort:
                 set_piece(Piece::Empty, 5, Color::Empty);
                 set_piece(Piece::Empty, 6, Color::Empty);
