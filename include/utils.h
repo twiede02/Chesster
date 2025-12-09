@@ -6,6 +6,8 @@
 #include <optional>
 #include <string>
 
+#include "square.h"
+
 enum class Piece { Pawn, Rook, Knight, Bishop, Queen, King, Empty };
 
 enum class Color { White, Black, Empty };
@@ -20,6 +22,13 @@ struct Move {
         rook_destroyed_castle(false), king_destroyed_short_castle(false),
         king_destroyed_long_castle(false) {}
     Move() {}
+    Move(Square f, Square t, Piece p = Piece::Empty)
+        : from(f.value()), to(t.value()), promotion(p), captured_piece(Piece::Empty),
+        previous_moves_since_pawnmove_or_capture(0),
+        previous_en_passent_square(-1), castling(Castling::None),
+        rook_destroyed_castle(false), king_destroyed_short_castle(false),
+        king_destroyed_long_castle(false) {}
+
     int from;
     int to;
     Piece promotion;
@@ -151,7 +160,7 @@ int inline fast_log_2(uint64_t num) {
 }
 
 void inline print_move(Move m) {
-    std::cout << "\nFrom: " << m.from << " to: " << m.to
+    std::cout << "\nFrom: " << get_coords_from_index(m.from) << " to: " << get_coords_from_index(m.to)
         << "\nPromotion: " << to_string(m.promotion)
         << "\nCaptured: " << to_string(m.captured_piece);
 }

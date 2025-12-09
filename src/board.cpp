@@ -10,21 +10,13 @@
 // std::unordered_map<uint64_t, int> transposition_table(1 << 20);
 
 Position::Position() {
-    for (int i =  0; i < 64; i++)
-        piece_table[i] = Piece::Empty;
-    for (int i =  0; i < 64; i++)
-        color_table[i] = Color::Empty;
-    // piece_table.assign(64, Piece::Empty);
-    // color_table.assign(64, Color::Empty);
+    piece_table.fill(Piece::Empty);
+    color_table.fill(Color::Empty);
 }
 
 Position::Position(std::string fen_position) {
-    for (int i =  0; i < 64; i++)
-        piece_table[i] = Piece::Empty;
-    for (int i =  0; i < 64; i++)
-        color_table[i] = Color::Empty;
-    // piece_table.assign(64, Piece::Empty);
-    // color_table.assign(64, Color::Empty);
+    piece_table.fill(Piece::Empty);
+    color_table.fill(Color::Empty);
 
     std::stringstream fen_stream(fen_position);
 

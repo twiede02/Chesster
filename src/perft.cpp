@@ -14,6 +14,9 @@ uint64_t Perft::run_fast(int depth) {
     }
 
     Movelist move_list = generate_moves(p);
+    // for (auto m : move_list) {
+    //     print_move(m);
+    // }
     if (depth == 1)
         return move_list.size();
 

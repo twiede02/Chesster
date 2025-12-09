@@ -12,6 +12,7 @@ option(ENABLE_SANITIZERS "Enable runtime sanitizers for debugging" ON)
 
 if (NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Debug CACHE STRING "Build type (Debug or Release)" FORCE)
+    set(CMAKE_CXX_CLANG_TIDY "clang-tidy;-checks=cppcoreguidelines-*")
 endif()
 
 # Include directories

@@ -1,10 +1,10 @@
 #pragma once
 
 #include <cstdint>
-#include <vector>
+#include <array>
 
-extern uint64_t knight_masks[64];
-extern uint64_t king_masks[64];
-extern uint64_t rook_blocker_masks[64];
-extern uint64_t bishop_blocker_masks[64];
+extern const std::array<uint64_t, 64> knight_masks;
+extern const std::array<uint64_t, 64> king_masks;
+extern const std::array<uint64_t, 64> rook_blocker_masks;
+extern const std::array<uint64_t, 64> bishop_blocker_masks;
 

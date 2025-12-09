@@ -1,9 +1,9 @@
 #include "attack_masks.h"
 
 #include <cstdint>
-#include <vector>
+#include <array>
 
-uint64_t knight_masks[64] = {
+const std::array<uint64_t, 64> knight_masks = {
     0x0000000000020400ULL, 0x0000000000050800ULL, 0x00000000000A1100ULL,
     0x0000000000142200ULL, 0x0000000000284400ULL, 0x0000000000508800ULL,
     0x0000000000A01000ULL, 0x0000000000402000ULL, 0x0000000002040004ULL,
@@ -30,7 +30,7 @@ uint64_t knight_masks[64] = {
 
 // TODO: I included the square on which the king stands on. That's useless.
 // Remove that for slight optimization
-uint64_t king_masks[64] = {
+const std::array<uint64_t, 64> king_masks = {
     0x0000000000000303ULL, 0x0000000000000707ULL, 0x0000000000000E0EULL,
     0x0000000000001C1CULL, 0x0000000000003838ULL, 0x0000000000007070ULL,
     0x000000000000E0E0ULL, 0x000000000000C0C0ULL, 0x0000000000030303ULL,
@@ -55,7 +55,7 @@ uint64_t king_masks[64] = {
     0xC0C0000000000000ULL,
 };
 
-uint64_t rook_blocker_masks[64] = {
+const std::array<uint64_t, 64> rook_blocker_masks = {
     0x000101010101017E, 0x000202020202027C, 0x000404040404047A, 
     0x0008080808080876, 0x001010101010106E, 0x002020202020205E,
     0x004040404040403E, 0x008080808080807E, 0x0001010101017E00,
@@ -80,7 +80,7 @@ uint64_t rook_blocker_masks[64] = {
     0x7E80808080808000,
 };
 
-uint64_t bishop_blocker_masks[64] = {
+const std::array<uint64_t, 64> bishop_blocker_masks = {
     0x0040201008040200, 0x0000402010080400, 0x0000004020100A00,
     0x0000000040221400, 0x0000000002442800, 0x0000000204085000,
     0x0000020408102000, 0x0002040810204000, 0x0020100804020000,

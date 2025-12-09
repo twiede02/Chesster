@@ -1,8 +1,7 @@
 #pragma once
 
 #include <cstdint>
-#include <unordered_map>
-#include <vector>
+#include <array>
 
 #include "utils.h"
 
@@ -85,9 +84,8 @@ struct Position {
     uint64_t occupied_squares = 0ULL;
 
     // 8x8 Board
-    Piece piece_table[64];
-    Color color_table[64];
-
+    std::array<Piece, 64> piece_table;
+    std::array<Color, 64> color_table;
     History<Move> move_history;
     History<uint64_t> hash_history;
 

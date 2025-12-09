@@ -2,5 +2,6 @@
 
 int main() {
     uciloop();
+
     return 0;
 }
