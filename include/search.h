@@ -1,9 +1,9 @@
 #pragma once
 
 #include "board.h"
+#include "movelist.h"
 #include <chrono>
 #include <optional>
-#include <vector>
 
 void order_moves(Position &p, Movelist& moves);
 

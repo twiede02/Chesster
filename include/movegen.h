@@ -1,9 +1,7 @@
 #pragma once
 
-#include <vector>
-
 #include "board.h"
-#include "utils.h"
+#include "movelist.h"
 
 void generate_pawn_moves(Movelist &res, Position &p);
 
@@ -21,4 +19,3 @@ Movelist generate_moves(Position &p);
 
 Movelist generate_captures(Position &p);
 
-bool is_move_valid(Move &m, Position &p);

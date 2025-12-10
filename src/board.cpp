@@ -337,6 +337,17 @@ bool Position::position_is_legal() {
     return true;
 }
 
+bool is_move_valid(Move &m, Position &p) {
+    if (p.side_to_move == p.color_table[m.to])
+        return false;
+    bool res = false;
+    auto log = p.make_move(m);
+    if (p.position_is_legal())
+        res = true;
+    p.unmake_move(log);
+    return res;
+}
+
 void Position::set_piece(Piece piece, int index, Color col) {
     uint64_t bit = 1ULL << index;
 

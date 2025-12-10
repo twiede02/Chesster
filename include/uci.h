@@ -1,3 +1,5 @@
+#pragma once
+
 #include <search.h>
 #include "zobrist.h"
 #include "book.h"
@@ -36,6 +38,7 @@ inline void handlePosition(const std::string &positionData) {
     }
     if (startpos_flag) {
         fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+fen = "8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - ";
     }
     p = Position(fen);
     if (token == "moves") {
@@ -199,3 +202,4 @@ inline void uciloop() {
         }
     }
 }
+

@@ -114,3 +114,5 @@ bool is_consistant(Position &p);
 bool is_capture(Position &p, Move &m);
 bool is_en_passent(Position &p, Move &m);
 bool is_castle(Position &p, Move &m);
+
+bool is_move_valid(Move &m, Position &p);

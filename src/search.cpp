@@ -8,9 +8,9 @@
 #include <optional>
 
 void order_moves(Position &p, Movelist& moves) {
-    Movelist checks;
-    Movelist captures;
-    Movelist no_captures;
+    Movelist checks(&p);
+    Movelist captures(&p);
+    Movelist no_captures(&p);
     for (auto &m : moves) {
         auto log = p.make_move(m);
         if (p.is_check()) {

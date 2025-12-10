@@ -4,6 +4,7 @@
 #include "attack_masks.h"
 #include "board.h"
 #include "movegen.h"
+#include "square.h"
 #include "utils.h"
 #include "bitboard.h"
 
@@ -29,20 +30,12 @@ static constexpr int one_row_offset = 8;
 static constexpr int two_row_offset = 16;
 static Bitboard ABCDEFG_FILE(0x7f7f7f7f7f7f7f7f);
 static Bitboard BCDEFGH_FILE(0xfefefefefefefefe);
-
-bool is_move_valid(Move &m, Position &p) {
-    if (p.side_to_move == p.color_table[m.to])
-        return false;
-    bool res = false;
-    auto log = p.make_move(m);
-    if (p.position_is_legal())
-        res = true;
-    p.unmake_move(log);
-    return res;
-}
+static Bitboard RANK_2_TO_6(0xffffffffff00);
+static Bitboard RANK_3_TO_7(0xffffffffff0000);
 
 void generate_pawn_moves(Movelist &res, Position &p) {
     Bitboard pawns;
+    Bitboard promotable_pawns;
     Bitboard pushed_pawns;
     Bitboard double_pushed_pawns;
     Bitboard left_capuring_pawns;
@@ -50,10 +43,11 @@ void generate_pawn_moves(Movelist &res, Position &p) {
 
     if (p.side_to_move == Color::White) {
         pawns = Bitboard(p.white_pawns);
-        pushed_pawns = Bitboard(p.white_pawns);
-        double_pushed_pawns = Bitboard(p.white_pawns);
-        left_capuring_pawns = Bitboard(p.white_pawns);
-        right_capuring_pawns = Bitboard(p.white_pawns);
+        promotable_pawns = Bitboard(p.white_pawns).masked_by(RANK_7);
+        pushed_pawns = Bitboard(p.white_pawns).masked_by(RANK_2_TO_6);
+        double_pushed_pawns = Bitboard(p.white_pawns).masked_by(RANK_2_TO_6);
+        left_capuring_pawns = Bitboard(p.white_pawns).masked_by(RANK_2_TO_6);
+        right_capuring_pawns = Bitboard(p.white_pawns).masked_by(RANK_2_TO_6);
 
         pushed_pawns
             .shift_rank_up()
@@ -62,6 +56,7 @@ void generate_pawn_moves(Movelist &res, Position &p) {
         double_pushed_pawns
             .masked_by(RANK_2)
             .shift_rank_up()
+            .masked_by(Bitboard(p.empty_squares))
             .shift_rank_up()
             .masked_by(Bitboard(p.empty_squares));
 
@@ -76,6 +71,54 @@ void generate_pawn_moves(Movelist &res, Position &p) {
             .shift_rank_up()
             .shift_right()
             .masked_by(Bitboard(p.occupied_squares));
+
+        while (promotable_pawns) {
+            Square msb = promotable_pawns.msb_pop();
+            Square to = msb;
+            to.shift_rank_up();
+
+            if (p.color_table[to.value()] == Color::Empty) {
+                Move m(msb, to);
+                m.promotion = Piece::Knight;
+                res.add(m);
+                m.promotion = Piece::Rook;
+                res.add(m);
+                m.promotion = Piece::Bishop;
+                res.add(m);
+                m.promotion = Piece::Queen;
+                res.add(m);
+            }
+
+            if (msb.file() > 0) {
+                Square left_to = to;
+                left_to.shift_file_left();
+
+                Move m(msb, left_to);
+                m.promotion = Piece::Knight;
+                res.add(m);
+                m.promotion = Piece::Rook;
+                res.add(m);
+                m.promotion = Piece::Bishop;
+                res.add(m);
+                m.promotion = Piece::Queen;
+                res.add(m);
+            }
+
+            if (msb.file() < 7) {
+                Square right_to = to;
+                right_to.shift_file_right();
+
+                Move m(msb, right_to);
+                m.promotion = Piece::Knight;
+                res.add(m);
+                m.promotion = Piece::Rook;
+                res.add(m);
+                m.promotion = Piece::Bishop;
+                res.add(m);
+                m.promotion = Piece::Queen;
+                res.add(m);
+            }
+        }
 
         while (left_capuring_pawns) {
             Square msb = left_capuring_pawns.msb_pop();
@@ -115,10 +158,11 @@ void generate_pawn_moves(Movelist &res, Position &p) {
 
     } else {
         pawns = Bitboard(p.black_pawns);
-        pushed_pawns = Bitboard(p.black_pawns);
-        double_pushed_pawns = Bitboard(p.black_pawns);
-        left_capuring_pawns = Bitboard(p.black_pawns);
-        right_capuring_pawns = Bitboard(p.black_pawns);
+        promotable_pawns = Bitboard(p.black_pawns).masked_by(RANK_2);
+        pushed_pawns = Bitboard(p.black_pawns).masked_by(RANK_3_TO_7);
+        double_pushed_pawns = Bitboard(p.black_pawns).masked_by(RANK_3_TO_7);
+        left_capuring_pawns = Bitboard(p.black_pawns).masked_by(RANK_3_TO_7);
+        right_capuring_pawns = Bitboard(p.black_pawns).masked_by(RANK_3_TO_7);
 
         pushed_pawns
             .shift_rank_down()
@@ -127,6 +171,7 @@ void generate_pawn_moves(Movelist &res, Position &p) {
         double_pushed_pawns
             .masked_by(RANK_7)
             .shift_rank_down()
+            .masked_by(Bitboard(p.empty_squares))
             .shift_rank_down()
             .masked_by(Bitboard(p.empty_squares));
 
@@ -141,6 +186,54 @@ void generate_pawn_moves(Movelist &res, Position &p) {
             .shift_rank_down()
             .shift_right()
             .masked_by(Bitboard(p.occupied_squares));
+
+        while (promotable_pawns) {
+            Square msb = promotable_pawns.msb_pop();
+            Square to = msb;
+            to.shift_rank_up();
+
+            if (p.color_table[to.value()] == Color::Empty) {
+                Move m(msb, to);
+                m.promotion = Piece::Knight;
+                res.add(m);
+                m.promotion = Piece::Rook;
+                res.add(m);
+                m.promotion = Piece::Bishop;
+                res.add(m);
+                m.promotion = Piece::Queen;
+                res.add(m);
+            }
+
+            if (msb.file() > 0) {
+                Square left_to = to;
+                left_to.shift_file_left();
+
+                Move m(msb, left_to);
+                m.promotion = Piece::Knight;
+                res.add(m);
+                m.promotion = Piece::Rook;
+                res.add(m);
+                m.promotion = Piece::Bishop;
+                res.add(m);
+                m.promotion = Piece::Queen;
+                res.add(m);
+            }
+
+            if (msb.file() < 7) {
+                Square right_to = to;
+                right_to.shift_file_right();
+
+                Move m(msb, right_to);
+                m.promotion = Piece::Knight;
+                res.add(m);
+                m.promotion = Piece::Rook;
+                res.add(m);
+                m.promotion = Piece::Bishop;
+                res.add(m);
+                m.promotion = Piece::Queen;
+                res.add(m);
+            }
+        }
 
         while (left_capuring_pawns) {
             Square msb = left_capuring_pawns.msb_pop();
@@ -169,44 +262,34 @@ void generate_pawn_moves(Movelist &res, Position &p) {
             Move m(from, msb);
             res.add(m);
         }
+        
+        while (pushed_pawns) {
+            Square msb = pushed_pawns.msb_pop();
+            Square from = msb;
+            from.shift_rank_up();
+            Move m(from, msb);
+            res.add(m);
+        }
     }
-
-    return;
 }
 
 void generate_knight_moves(Movelist &res, Position &p) {
-    uint64_t knights =
-        p.side_to_move == Color::White ? p.white_knights : p.black_knights;
+    Bitboard knights =
+        p.side_to_move == Color::White ? Bitboard(p.white_knights) : Bitboard(p.black_knights);
 
     while (knights) {
-        int index = fast_log_2(knights);
-        if (p.piece_table[index] != Piece::Knight) {
-            std::cout << to_string(p.piece_table[index]);
-            std::cout << to_string(p.color_table[index]);
-            std::cout << to_string(p.side_to_move);
-        }
-        uint64_t possible_squares = knight_masks[index];
+        Square from = knights.msb_pop();
+
+        Bitboard possible_squares = Bitboard(knight_masks[from.value()]);
 
         while (possible_squares) {
-            int current_index = fast_log_2(possible_squares);
+            Square to = possible_squares.msb_pop();
 
-            if (p.piece_table[current_index] == Piece::Empty) {
-                Move m(index, current_index);
-                if (is_move_valid(m, p))
-                    res.add(m);
-            } else if (p.color_table[current_index] != p.side_to_move) {
-                // capture
-                Move m(index, current_index);
-                if (p.color_table[current_index] != Color::Empty) {
-                    m.captured_piece = p.piece_table[current_index];
-                }
-                if (is_move_valid(m, p))
-                    res.add(m);
+            if (p.color_table[to.value()] != p.side_to_move) {
+                Move m(from, to);
+                res.add(m);
             }
-            possible_squares ^= 1ULL << current_index;
         }
-
-        knights ^= 1ULL << index;
     }
 }
 
@@ -431,39 +514,24 @@ void generate_queen_moves(Movelist &res, Position &p) {
 }
 
 void generate_king_moves(Movelist &res, Position &p) {
-    uint64_t king =
-        p.side_to_move == Color::White ? p.white_kings : p.black_kings;
-    int index = fast_log_2(king);
 
-    uint64_t moves = king_masks[index];
+    Bitboard king =
+        p.side_to_move == Color::White ? Bitboard(p.white_kings) : Bitboard(p.black_kings);
 
-    while (moves != 0ULL) {
-        int current_index = fast_log_2(moves);
-        if (p.piece_table[current_index] == Piece::Empty) {
-            Move m(index, current_index);
+    Square from = king.msb();
+    Bitboard possible_squares = Bitboard(king_masks[from.value()]);
 
-            if (is_move_valid(m, p))
-                res.add(m);
-        } else if (p.color_table[current_index] != p.side_to_move &&
-                p.color_table[current_index] != Color::Empty) {
-            // capture
-            Move m(index, current_index);
-            m.captured_piece = p.piece_table[current_index];
+    while (possible_squares) {
+        Square to = possible_squares.msb_pop();
 
-            if (is_move_valid(m, p))
-                res.add(m);
+        if (p.color_table[to.value()] != p.side_to_move) {
+            Move m(from, to);
+            res.add(m);
         }
-        moves ^= 1ULL << current_index;
     }
 
-    // castling
-    // filtered for legality already
-
-    if (p.is_check())
-        return;
-
     if (p.side_to_move == Color::White) {
-        if (p.piece_table[4] != Piece::King)
+        if (from != Square::Value::E1)
             return;
         if (p.white_kingside_castling_right) {
             bool can_castle_kingside = p.piece_table[5] == Piece::Empty &&
@@ -572,7 +640,7 @@ void generate_king_moves(Movelist &res, Position &p) {
 }
 
 Movelist generate_moves(Position &p) {
-    Movelist res;
+    Movelist res(&p);
 
     generate_pawn_moves(res, p);
     generate_knight_moves(res, p);
@@ -586,7 +654,7 @@ Movelist generate_moves(Position &p) {
 
 Movelist generate_captures(Position &p) {
     Movelist moves = generate_moves(p);
-    Movelist res;
+    Movelist res(&p);
 
     for (auto &m : moves)
         if (p.piece_table[m.to] != Piece::Empty)
