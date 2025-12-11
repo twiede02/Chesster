@@ -44,8 +44,7 @@ class Trie {
         std::string get_random_next_move(History<Move> history) {
             TrieNode *node = root;
             for (Move move : history) {
-                std::string move_string =
-                    get_coords_from_index(move.from) + get_coords_from_index(move.to);
+                std::string move_string = to_string(move);
                 std::cout << move_string << "\n";
                 if (!node->children[move_string]) {
                     return "";

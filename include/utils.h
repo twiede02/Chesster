@@ -6,7 +6,9 @@
 #include <optional>
 #include <string>
 
+#include "bitboard.h"
 #include "move.h"
+#include "square.h"
 
 struct TimeControl {
     std::optional<int> wtime;
@@ -36,6 +38,19 @@ std::string inline to_string(Piece p) {
     }
 }
 
+std::string inline to_string(MoveType t) {
+    switch (t) {
+        case MoveType::Normal:
+            return "Nomal";
+        case MoveType::Castling:
+            return "Castling";
+        case MoveType::EnPassent:
+            return "EnPassent";
+        case MoveType::Promotion:
+            return "Promotion";
+    }
+}
+
 std::string inline to_string(Color c) {
     switch (c) {
         case Color::White:
@@ -49,9 +64,25 @@ std::string inline to_string(Color c) {
     }
 }
 
-std::string inline to_string(Move m) {
-    return std::to_string(m.from) + std::to_string(m.to);
+inline std::string to_string(Move m) {
+    std::string s;
+
+    s += m.from().to_string(); 
+    s += m.to().to_string();
+
+    if (m.type() == MoveType::Promotion) {
+        switch (m.promotedPiece()) {
+            case Piece::Knight: s += 'n'; break;
+            case Piece::Bishop: s += 'b'; break;
+            case Piece::Rook:   s += 'r'; break;
+            case Piece::Queen:  s += 'q'; break;
+            default: break;
+        }
+    }
+
+    return s;
 }
+
 
 int inline get_index(char file, int rank) {
     int index = file - 'a' + 8 * (rank - 1);
@@ -60,25 +91,12 @@ int inline get_index(char file, int rank) {
     return index;
 }
 
-std::string inline get_coords_from_index(int index) {
-    if (index < 0 || index >= 64) {
-        // Handle invalid index
-        return "Invalid index";
-    }
-
-    // Calculate file (column) and rank (row)
-    char file = (char) ('a' + (index % 8)); // File 'a' to 'h'
-    int rank = (index / 8) + 1;    // Rank 1 to 8
-
-    // Concatenate file and rank into a string
-    return std::string(1, file) + std::to_string(rank);
-}
-
 void inline print_coords_from_index(int index) {
     std::cout << (char)('a' + index % 8) << (index / 8) + 1;
 }
 
-void inline print_bitboard(uint64_t bitboard) {
+void inline print_bitboard(Bitboard b) {
+    uint64_t bitboard = b.value();
     for (int rank = 7; rank >= 0; --rank) {
         for (int file = 0; file < 8; ++file) {
             int square = rank * 8 + file;
@@ -103,14 +121,14 @@ int inline fast_log_2(uint64_t num) {
 }
 
 void inline print_move(Move m) {
-    std::cout << "\nFrom: " << get_coords_from_index(m.from) << " to: " << get_coords_from_index(m.to)
-        << "\nPromotion: " << to_string(m.promotion)
-        << "\nCaptured: " << to_string(m.captured_piece);
+    std::cout << "\nFrom: " << m.from().to_string() << " to: " << m.to().to_string()
+        << "\nPromotion: " << to_string(m.promotedPiece())
+        << "\nType: " << to_string(m.type());
 }
 
 void inline print_move_compact(Move m) {
-    std::cout << get_coords_from_index(m.from) << get_coords_from_index(m.to);
-    switch (m.promotion) {
+    std::cout << m.from().to_string() << m.to().to_string();
+    switch (m.promotedPiece()) {
         case Piece::Rook:
             std::cout << "r";
             break;

@@ -41,10 +41,7 @@ struct PerftResults {
 
 class Perft {
     public:
-        Perft(Position& pos);
-
-        Position p;
-        PerftResults res;
+        Perft(Position& pos) : p_(pos) {}
 
         uint64_t run_fast(int depth);
 
@@ -54,5 +51,8 @@ class Perft {
 
         uint64_t run_wrapped(int depth);
 
-        void run_up_to(int depth, Position p);
+        void run_up_to(int depth);
+    private:
+        Position p_;
+        PerftResults res;
 };

@@ -1,37 +1,40 @@
 #pragma once
 
 #include "square.h"
+#include <cstdint>
 
-enum class Piece { Pawn, Rook, Knight, Bishop, Queen, King, Empty };
-enum class Color { White, Black, Empty };
+enum class Piece { Empty = 0, Pawn, Rook, Knight, Bishop, Queen, King };
+enum class Color { Empty = 0, White, Black };
 enum class Castling { WhiteShort, WhiteLong, BlackShort, BlackLong, None };
+enum class MoveType { Normal, Castling, EnPassent, Promotion };
 
+// layout left to right
+// 2 bits: move type
+// 00: normal
+// 01: castle
+// 10: en passent
+// 11: promotion
+// 2 bits: promotion piece
+// 00: knight
+// 01: bishop
+// 10: rook
+// 11: queen
+// 6 bits: from square
+// 6 bits: to square
+class Move {
+   public:
+    Move() : move_(0) {}
+    Move(Square from, Square to, MoveType m = MoveType::Normal, Piece p = Piece::Knight) {
+        std::uint16_t leftmost4bits = static_cast<uint16_t>(static_cast<int>(m) << 2 | static_cast<int>(p));
+        move_ = static_cast<uint16_t>((leftmost4bits << 12) | ((from.value() & 0x3F) << 6) | (to.value() & 0x3F));
+    }
 
-struct Move {
-    Move(int f, int t, Piece p = Piece::Empty)
-        : from(f), to(t), promotion(p), captured_piece(Piece::Empty),
-        previous_moves_since_pawnmove_or_capture(0),
-        previous_en_passent_square(-1), castling(Castling::None),
-        rook_destroyed_castle(false), king_destroyed_short_castle(false),
-        king_destroyed_long_castle(false) {}
-    Move() {}
-    Move(Square f, Square t, Piece p = Piece::Empty)
-        : from(f.value()), to(t.value()), promotion(p), captured_piece(Piece::Empty),
-        previous_moves_since_pawnmove_or_capture(0),
-        previous_en_passent_square(-1), castling(Castling::None),
-        rook_destroyed_castle(false), king_destroyed_short_castle(false),
-        king_destroyed_long_castle(false) {}
+    Square from() const { return Square((move_ >> 6) & 0x3F); }
+    Square to() const { return Square(move_ & 0x3F); }
+    constexpr MoveType type() const { return static_cast<MoveType>((move_ >> 14) & 0x3); }
+    constexpr Piece promotedPiece() const { return static_cast<Piece>((move_ >> 12) & 0x3); }
 
-    int from;
-    int to;
-    Piece promotion;
-    Piece captured_piece;
-    int previous_moves_since_pawnmove_or_capture;
-    int previous_en_passent_square;
-    Castling castling;
-    bool rook_destroyed_castle;
-    bool king_destroyed_short_castle;
-    bool king_destroyed_long_castle;
+   private:
+    std::uint16_t move_;
 };
-
 

@@ -3,7 +3,9 @@
 
 #include "attack_masks.h"
 #include "board.h"
+#include "magics.h"
 #include "movegen.h"
+#include "move.h"
 #include "square.h"
 #include "utils.h"
 #include "bitboard.h"
@@ -73,86 +75,86 @@ void generate_pawn_moves(Movelist &res, Position &p) {
             .masked_by(Bitboard(p.occupied_squares));
 
         while (promotable_pawns) {
-            Square msb = promotable_pawns.msb_pop();
-            Square to = msb;
+            Square from = promotable_pawns.msb_pop();
+            Square to = from;
             to.shift_rank_up();
 
-            if (p.color_table[to.value()] == Color::Empty) {
-                Move m(msb, to);
-                m.promotion = Piece::Knight;
+            if (p.color_table[to] == Color::Empty) {
+                Move m;
+                m = Move(from, to, MoveType::Promotion, Piece::Knight);
                 res.add(m);
-                m.promotion = Piece::Rook;
+                m = Move(from, to, MoveType::Promotion, Piece::Rook);
                 res.add(m);
-                m.promotion = Piece::Bishop;
+                m = Move(from, to, MoveType::Promotion, Piece::Bishop);
                 res.add(m);
-                m.promotion = Piece::Queen;
+                m = Move(from, to, MoveType::Promotion, Piece::Queen);
                 res.add(m);
             }
 
-            if (msb.file() > 0) {
+            if (from.file() > 0) {
                 Square left_to = to;
                 left_to.shift_file_left();
 
-                Move m(msb, left_to);
-                m.promotion = Piece::Knight;
+                Move m;
+                m = Move(from, left_to, MoveType::Promotion, Piece::Knight);
                 res.add(m);
-                m.promotion = Piece::Rook;
+                m = Move(from, left_to, MoveType::Promotion, Piece::Rook);
                 res.add(m);
-                m.promotion = Piece::Bishop;
+                m = Move(from, left_to, MoveType::Promotion, Piece::Bishop);
                 res.add(m);
-                m.promotion = Piece::Queen;
+                m = Move(from, left_to, MoveType::Promotion, Piece::Queen);
                 res.add(m);
             }
 
-            if (msb.file() < 7) {
+            if (from.file() < 7) {
                 Square right_to = to;
                 right_to.shift_file_right();
 
-                Move m(msb, right_to);
-                m.promotion = Piece::Knight;
+                Move m;
+                m = Move(from, right_to, MoveType::Promotion, Piece::Knight);
                 res.add(m);
-                m.promotion = Piece::Rook;
+                m = Move(from, right_to, MoveType::Promotion, Piece::Rook);
                 res.add(m);
-                m.promotion = Piece::Bishop;
+                m = Move(from, right_to, MoveType::Promotion, Piece::Bishop);
                 res.add(m);
-                m.promotion = Piece::Queen;
+                m = Move(from, right_to, MoveType::Promotion, Piece::Queen);
                 res.add(m);
             }
         }
 
         while (left_capuring_pawns) {
-            Square msb = left_capuring_pawns.msb_pop();
-            if (p.color_table[msb.value()] != p.side_to_move) {
-                Square from = msb;
+            Square to = left_capuring_pawns.msb_pop();
+            if (p.color_table[to] != p.side_to_move) {
+                Square from = to;
                 from.shift_rank_down().shift_file_right();
-                Move m(from, msb);
+                Move m(from, to);
                 res.add(m);
             }
         }
 
         while (right_capuring_pawns) {
-            Square msb = right_capuring_pawns.msb_pop();
-            if (p.color_table[msb.value()] != p.side_to_move) {
-                Square from = msb;
+            Square to = right_capuring_pawns.msb_pop();
+            if (p.color_table[to] != p.side_to_move) {
+                Square from = to;
                 from.shift_rank_down().shift_file_left();
-                Move m(from, msb);
+                Move m(from, to);
                 res.add(m);
             }
         }
 
         while (double_pushed_pawns) {
-            Square msb = double_pushed_pawns.msb_pop();
-            Square from = msb;
+            Square to = double_pushed_pawns.msb_pop();
+            Square from = to;
             from.shift_rank_down().shift_rank_down();
-            Move m(from, msb);
+            Move m(from, to);
             res.add(m);
         }
 
         while (pushed_pawns) {
-            Square msb = pushed_pawns.msb_pop();
-            Square from = msb;
+            Square to = pushed_pawns.msb_pop();
+            Square from = to;
             from.shift_rank_down();
-            Move m(from, msb);
+            Move m(from, to);
             res.add(m);
         }
 
@@ -188,89 +190,92 @@ void generate_pawn_moves(Movelist &res, Position &p) {
             .masked_by(Bitboard(p.occupied_squares));
 
         while (promotable_pawns) {
-            Square msb = promotable_pawns.msb_pop();
-            Square to = msb;
+            Square from = promotable_pawns.msb_pop();
+            Square to = from;
             to.shift_rank_up();
 
-            if (p.color_table[to.value()] == Color::Empty) {
-                Move m(msb, to);
-                m.promotion = Piece::Knight;
+            if (p.color_table[to] == Color::Empty) {
+                Move m;
+                m = Move(from, to, MoveType::Promotion, Piece::Knight);
                 res.add(m);
-                m.promotion = Piece::Rook;
+                m = Move(from, to, MoveType::Promotion, Piece::Rook);
                 res.add(m);
-                m.promotion = Piece::Bishop;
+                m = Move(from, to, MoveType::Promotion, Piece::Bishop);
                 res.add(m);
-                m.promotion = Piece::Queen;
+                m = Move(from, to, MoveType::Promotion, Piece::Queen);
                 res.add(m);
+
             }
 
-            if (msb.file() > 0) {
+            if (from.file() > 0) {
                 Square left_to = to;
                 left_to.shift_file_left();
 
-                Move m(msb, left_to);
-                m.promotion = Piece::Knight;
+                Move m;
+                m = Move(from, to, MoveType::Promotion, Piece::Knight);
                 res.add(m);
-                m.promotion = Piece::Rook;
+                m = Move(from, to, MoveType::Promotion, Piece::Rook);
                 res.add(m);
-                m.promotion = Piece::Bishop;
+                m = Move(from, to, MoveType::Promotion, Piece::Bishop);
                 res.add(m);
-                m.promotion = Piece::Queen;
+                m = Move(from, to, MoveType::Promotion, Piece::Queen);
                 res.add(m);
             }
 
-            if (msb.file() < 7) {
+            if (from.file() < 7) {
                 Square right_to = to;
                 right_to.shift_file_right();
 
-                Move m(msb, right_to);
-                m.promotion = Piece::Knight;
+                Move m;
+                m = Move(from, right_to, MoveType::Promotion, Piece::Knight);
                 res.add(m);
-                m.promotion = Piece::Rook;
+                m = Move(from, right_to, MoveType::Promotion, Piece::Rook);
                 res.add(m);
-                m.promotion = Piece::Bishop;
+                m = Move(from, right_to, MoveType::Promotion, Piece::Bishop);
                 res.add(m);
-                m.promotion = Piece::Queen;
+                m = Move(from, right_to, MoveType::Promotion, Piece::Queen);
                 res.add(m);
             }
         }
 
         while (left_capuring_pawns) {
-            Square msb = left_capuring_pawns.msb_pop();
-            if (p.color_table[msb.value()] != p.side_to_move) {
-                Square from = msb;
+            Square to = left_capuring_pawns.msb_pop();
+            if (p.color_table[to] != p.side_to_move) {
+                Square from = to;
                 from.shift_rank_up().shift_file_right();
-                Move m(from, msb);
+                Move m(from, to);
                 res.add(m);
             }
         }
 
         while (right_capuring_pawns) {
-            Square msb = right_capuring_pawns.msb_pop();
-            if (p.color_table[msb.value()] != p.side_to_move) {
-                Square from = msb;
+            Square to = right_capuring_pawns.msb_pop();
+            if (p.color_table[to] != p.side_to_move) {
+                Square from = to;
                 from.shift_rank_up().shift_file_left();
-                Move m(from, msb);
+                Move m(from, to);
                 res.add(m);
             }
         }
 
         while (double_pushed_pawns) {
-            Square msb = double_pushed_pawns.msb_pop();
-            Square from = msb;
+            Square to = double_pushed_pawns.msb_pop();
+            Square from = to;
             from.shift_rank_up().shift_rank_up();
-            Move m(from, msb);
+            Move m(from, to);
             res.add(m);
         }
         
         while (pushed_pawns) {
-            Square msb = pushed_pawns.msb_pop();
-            Square from = msb;
+            Square to = pushed_pawns.msb_pop();
+            Square from = to;
             from.shift_rank_up();
-            Move m(from, msb);
+            Move m(from, to);
             res.add(m);
         }
     }
+
+    // TODO: EN PASSENT
 }
 
 void generate_knight_moves(Movelist &res, Position &p) {
@@ -285,7 +290,7 @@ void generate_knight_moves(Movelist &res, Position &p) {
         while (possible_squares) {
             Square to = possible_squares.msb_pop();
 
-            if (p.color_table[to.value()] != p.side_to_move) {
+            if (p.color_table[to] != p.side_to_move) {
                 Move m(from, to);
                 res.add(m);
             }
@@ -294,222 +299,73 @@ void generate_knight_moves(Movelist &res, Position &p) {
 }
 
 void generate_rook_moves(Movelist &res, Position &p) {
-    uint64_t rooks =
-        p.side_to_move == Color::White ? p.white_rooks : p.black_rooks;
+    Bitboard rooks =
+        p.side_to_move == Color::White ? Bitboard(p.white_rooks): Bitboard(p.black_rooks);
 
-    while (rooks != 0) {
-        int index = fast_log_2(rooks);
+    while (rooks) {
+        Square from = rooks.msb_pop();
+        
+        Bitboard blockers = Bitboard(p.occupied_squares)
+            .masked_by(rook_attack_masks[from.value()]);
 
-        int down_steps = index / 8;
-        int up_steps = 7 - down_steps;
-        int left_steps = index % 8;
-        int right_steps = 7 - left_steps;
+        Bitboard possible_squares = lookup_rook_move(from, blockers);
 
-        int current_index;
-
-        for (int offset = 1; offset <= left_steps; offset++) {
-            current_index = index - offset;
-            Move m(index, current_index);
-            if (p.color_table[current_index] != Color::Empty) {
-                offset = left_steps + 1;
-            }
-            if (is_move_valid(m, p))
-                res.add(m);
+        while (possible_squares) {
+            Square to = possible_squares.msb_pop();
+            Move m(from, to);
+            res.add(m);
         }
-
-        for (int offset = 1; offset <= right_steps; offset++) {
-            current_index = index + offset;
-            Move m(index, current_index);
-            if (p.color_table[current_index] != Color::Empty) {
-                offset = right_steps + 1;
-            }
-            if (is_move_valid(m, p))
-                res.add(m);
-        }
-
-        for (int offset = 1; offset <= up_steps; offset++) {
-            current_index = index + offset * 8;
-            Move m(index, current_index);
-            if (p.color_table[current_index] != Color::Empty) {
-                offset = up_steps + 1;
-            }
-            if (is_move_valid(m, p))
-                res.add(m);
-        }
-
-        for (int offset = 1; offset <= down_steps; offset++) {
-            current_index = index - offset * 8;
-            Move m(index, current_index);
-            if (p.color_table[current_index] != Color::Empty) {
-                offset = down_steps + 1;
-            }
-            if (is_move_valid(m, p))
-                res.add(m);
-        }
-
-        rooks ^= 1ULL << index;
     }
 }
 
 void generate_bishop_moves(Movelist &res, Position &p) {
-    uint64_t bishops =
+    Bitboard bishops =
         p.side_to_move == Color::White ? p.white_bishops : p.black_bishops;
 
-    while (bishops != 0) {
-        int index = fast_log_2(bishops);
+    while (bishops) {
+        Square from = bishops.msb_pop();
+        
+        Bitboard blockers = Bitboard(p.occupied_squares)
+            .masked_by(bishop_attack_masks[from.value()]);
 
-        int left_down_steps = std::min(index / 8, index % 8);
-        int left_up_steps = std::min(7 - (index / 8), index % 8);
-        int right_down_steps = std::min(index / 8, 7 - (index % 8));
-        int right_up_steps = std::min(7 - (index / 8), 7 - (index % 8));
+        Bitboard possible_squares = lookup_bishop_move(from, blockers);
 
-        int current_index;
-
-        for (int offset = 1; offset <= left_down_steps; offset++) {
-            current_index = index - offset * 9;
-            Move m(index, current_index);
-            if (p.color_table[current_index] != Color::Empty) {
-                offset = left_down_steps + 1;
-            }
-            if (is_move_valid(m, p))
-                res.add(m);
+        while (possible_squares) {
+            Square to = possible_squares.msb_pop();
+            Move m(from, to);
+            res.add(m);
         }
-
-        for (int offset = 1; offset <= left_up_steps; offset++) {
-            current_index = index + offset * 7;
-            Move m(index, current_index);
-            if (p.color_table[current_index] != Color::Empty) {
-                offset = left_up_steps + 1;
-            }
-            if (is_move_valid(m, p))
-                res.add(m);
-        }
-
-        for (int offset = 1; offset <= right_down_steps; offset++) {
-            current_index = index - offset * 7;
-            Move m(index, current_index);
-            if (p.color_table[current_index] != Color::Empty) {
-                offset = right_down_steps + 1;
-            }
-            if (is_move_valid(m, p))
-                res.add(m);
-        }
-
-        for (int offset = 1; offset <= right_up_steps; offset++) {
-            current_index = index + offset * 9;
-            Move m(index, current_index);
-            if (p.color_table[current_index] != Color::Empty) {
-                offset = right_up_steps + 1;
-            }
-            if (is_move_valid(m, p))
-                res.add(m);
-        }
-
-        bishops ^= 1ULL << index;
     }
 }
 
 void generate_queen_moves(Movelist &res, Position &p) {
-    uint64_t queens =
+    Bitboard queens =
         p.side_to_move == Color::White ? p.white_queens : p.black_queens;
 
-    // Bishop pattern first, then rook pattern
-    while (queens != 0) {
-        int index = fast_log_2(queens);
+    while (queens) {
+        Square from = queens.msb_pop();
+        
+        Bitboard rook_blockers = Bitboard(p.occupied_squares)
+            .masked_by(rook_attack_masks[from.value()]);
 
-        int down_steps = index / 8;
-        int up_steps = 7 - down_steps;
-        int left_steps = index % 8;
-        int right_steps = 7 - left_steps;
+        Bitboard possible_rook_squares = lookup_rook_move(from, rook_blockers);
 
-        int left_down_steps = std::min(index / 8, index % 8);
-        int left_up_steps = std::min(7 - (index / 8), index % 8);
-        int right_down_steps = std::min(index / 8, 7 - (index % 8));
-        int right_up_steps = std::min(7 - (index / 8), 7 - (index % 8));
-
-        int current_index;
-
-        for (int offset = 1; offset <= left_steps; offset++) {
-            current_index = index - offset;
-            Move m(index, current_index);
-            if (p.color_table[current_index] != Color::Empty) {
-                offset = left_steps + 1;
-            }
-            if (is_move_valid(m, p))
-                res.add(m);
+        while (possible_rook_squares) {
+            Square to = possible_rook_squares.msb_pop();
+            Move m(from, to);
+            res.add(m);
         }
 
-        for (int offset = 1; offset <= right_steps; offset++) {
-            current_index = index + offset;
-            Move m(index, current_index);
-            if (p.color_table[current_index] != Color::Empty) {
-                offset = right_steps + 1;
-            }
-            if (is_move_valid(m, p))
-                res.add(m);
-        }
+        Bitboard bishop_blockers = Bitboard(p.occupied_squares)
+            .masked_by(bishop_attack_masks[from.value()]);
 
-        for (int offset = 1; offset <= up_steps; offset++) {
-            current_index = index + offset * 8;
-            Move m(index, current_index);
-            if (p.color_table[current_index] != Color::Empty) {
-                offset = up_steps + 1;
-            }
-            if (is_move_valid(m, p))
-                res.add(m);
-        }
+        Bitboard possible_bishop_squares = lookup_bishop_move(from, bishop_blockers);
 
-        for (int offset = 1; offset <= down_steps; offset++) {
-            current_index = index - offset * 8;
-            Move m(index, current_index);
-            if (p.color_table[current_index] != Color::Empty) {
-                offset = down_steps + 1;
-            }
-            if (is_move_valid(m, p))
-                res.add(m);
+        while (possible_bishop_squares) {
+            Square to = possible_bishop_squares.msb_pop();
+            Move m(from, to);
+            res.add(m);
         }
-
-        for (int offset = 1; offset <= left_down_steps; offset++) {
-            current_index = index - offset * 9;
-            Move m(index, current_index);
-            if (p.color_table[current_index] != Color::Empty) {
-                offset = left_down_steps + 1;
-            }
-            if (is_move_valid(m, p))
-                res.add(m);
-        }
-
-        for (int offset = 1; offset <= left_up_steps; offset++) {
-            current_index = index + offset * 7;
-            Move m(index, current_index);
-            if (p.color_table[current_index] != Color::Empty) {
-                offset = left_up_steps + 1;
-            }
-            if (is_move_valid(m, p))
-                res.add(m);
-        }
-
-        for (int offset = 1; offset <= right_down_steps; offset++) {
-            current_index = index - offset * 7;
-            Move m(index, current_index);
-            if (p.color_table[current_index] != Color::Empty) {
-                offset = right_down_steps + 1;
-            }
-            if (is_move_valid(m, p))
-                res.add(m);
-        }
-
-        for (int offset = 1; offset <= right_up_steps; offset++) {
-            current_index = index + offset * 9;
-            Move m(index, current_index);
-            if (p.color_table[current_index] != Color::Empty) {
-                offset = right_up_steps + 1;
-            }
-            if (is_move_valid(m, p))
-                res.add(m);
-        }
-
-        queens ^= 1ULL << index;
     }
 }
 
@@ -524,119 +380,14 @@ void generate_king_moves(Movelist &res, Position &p) {
     while (possible_squares) {
         Square to = possible_squares.msb_pop();
 
-        if (p.color_table[to.value()] != p.side_to_move) {
+        if (p.color_table[to] != p.side_to_move) {
             Move m(from, to);
             res.add(m);
         }
     }
 
-    if (p.side_to_move == Color::White) {
-        if (from != Square::Value::E1)
-            return;
-        if (p.white_kingside_castling_right) {
-            bool can_castle_kingside = p.piece_table[5] == Piece::Empty &&
-                p.piece_table[6] == Piece::Empty &&
-                p.piece_table[7] == Piece::Rook &&
-                p.color_table[7] == p.side_to_move;
+    // TODO: Castling
 
-            if (can_castle_kingside) {
-                Move m(4, 5);
-                auto log = p.make_move(m);
-                can_castle_kingside &= p.position_is_legal();
-                p.unmake_move(log);
-
-                m.to = 6;
-                log = p.make_move(m);
-                can_castle_kingside &= p.position_is_legal();
-                p.unmake_move(log);
-            }
-
-            if (can_castle_kingside) {
-                Move m(4, 6);
-                if (is_move_valid(m, p))
-                    res.add(m);
-            }
-        }
-
-        if (p.white_queenside_castling_right) {
-            bool can_castle_queenside = p.piece_table[3] == Piece::Empty &&
-                p.piece_table[2] == Piece::Empty &&
-                p.piece_table[1] == Piece::Empty &&
-                p.piece_table[0] == Piece::Rook &&
-                p.color_table[0] == p.side_to_move;
-
-            if (can_castle_queenside) {
-                Move m(4, 3);
-                auto log = p.make_move(m);
-                can_castle_queenside &= p.position_is_legal();
-                p.unmake_move(log);
-
-                m.to = 2;
-                log = p.make_move(m);
-                can_castle_queenside &= p.position_is_legal();
-                p.unmake_move(log);
-            }
-
-            if (can_castle_queenside) {
-                Move m(4, 2);
-                if (is_move_valid(m, p))
-                    res.add(m);
-            }
-        }
-    } else {
-        if (p.piece_table[60] != Piece::King)
-            return;
-        if (p.black_kingside_castling_right) {
-            bool can_castle_kingside = p.piece_table[61] == Piece::Empty &&
-                p.piece_table[62] == Piece::Empty &&
-                p.piece_table[63] == Piece::Rook &&
-                p.color_table[63] == p.side_to_move;
-
-            if (can_castle_kingside) {
-                Move m(60, 61);
-                auto log = p.make_move(m);
-                can_castle_kingside &= p.position_is_legal();
-                p.unmake_move(log);
-
-                m.to = 62;
-                log = p.make_move(m);
-                can_castle_kingside &= p.position_is_legal();
-                p.unmake_move(log);
-            }
-
-            if (can_castle_kingside) {
-                Move m(60, 62);
-                if (is_move_valid(m, p))
-                    res.add(m);
-            }
-        }
-
-        if (p.black_queenside_castling_right) {
-            bool can_castle_queenside = p.piece_table[59] == Piece::Empty &&
-                p.piece_table[58] == Piece::Empty &&
-                p.piece_table[57] == Piece::Empty &&
-                p.piece_table[56] == Piece::Rook &&
-                p.color_table[56] == p.side_to_move;
-
-            if (can_castle_queenside) {
-                Move m(60, 59);
-                auto log = p.make_move(m);
-                can_castle_queenside &= p.position_is_legal();
-                p.unmake_move(log);
-
-                m.to = 58;
-                log = p.make_move(m);
-                can_castle_queenside &= p.position_is_legal();
-                p.unmake_move(log);
-            }
-
-            if (can_castle_queenside) {
-                Move m(60, 58);
-                if (is_move_valid(m, p))
-                    res.add(m);
-            }
-        }
-    }
 }
 
 Movelist generate_moves(Position &p) {
@@ -657,7 +408,7 @@ Movelist generate_captures(Position &p) {
     Movelist res(&p);
 
     for (auto &m : moves)
-        if (p.piece_table[m.to] != Piece::Empty)
+        if (p.piece_table[m.to()] != Piece::Empty)
             res.add(m);
 
     return res;

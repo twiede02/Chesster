@@ -2,46 +2,45 @@
 #include <iostream>
 
 #include "board.h"
+#include "move.h"
 #include "movegen.h"
 #include "perft.h"
 #include "utils.h"
-
-Perft::Perft(Position& pos) { p = pos; }
 
 uint64_t Perft::run_fast(int depth) {
     if (depth == 0) {
         return 1ULL;
     }
 
-    Movelist move_list = generate_moves(p);
+    Movelist move_list = generate_moves(p_);
     // for (auto m : move_list) {
     //     print_move(m);
     // }
     if (depth == 1)
-        return move_list.size();
+        return static_cast<uint64_t>(move_list.size());
 
     uint64_t nodes = 0;
 
     for (auto m : move_list) {
-        auto log = p.make_move(m);
+        auto log = p_.make_move(m);
         nodes += run_fast(depth - 1);
-        p.unmake_move(log);
+        p_.unmake_move(log);
     }
 
     return nodes;
 }
 
 uint64_t Perft::run_debug(int depth) {
-    Movelist move_list = generate_moves(p);
+    Movelist move_list = generate_moves(p_);
 
     uint64_t nodes = 0;
     for (auto m : move_list) {
-        auto log = p.make_move(m);
+        auto log = p_.make_move(m);
         uint64_t local_nodes = run_fast(depth - 1);
         nodes += local_nodes;
         print_move_compact(m);
         std::cout << ": " << local_nodes << "\n";
-        p.unmake_move(log);
+        p_.unmake_move(log);
     }
     return nodes;
 }
@@ -56,10 +55,10 @@ PerftResults Perft::run(int depth) {
 }
 
 uint64_t Perft::run_wrapped(int depth) {
-    Movelist move_list = generate_moves(p);
+    Movelist move_list = generate_moves(p_);
 
     if (depth == 0) {
-        if (p.is_check()) {
+        if (p_.is_check()) {
             res.number_of_checks++;
         }
         if (move_list.size() == 0) {
@@ -72,23 +71,23 @@ uint64_t Perft::run_wrapped(int depth) {
 
     for (auto &m : move_list) {
         if (depth == 1) {
-            res.number_of_captures += is_capture(p, m);
+            res.number_of_captures += is_capture(p_, m);
 
-            res.number_of_en_passent += is_en_passent(p, m);
+            res.number_of_en_passent += is_en_passent(p_, m);
 
-            res.number_of_promotions += m.promotion != Piece::Empty;
+            res.number_of_promotions += m.type() == MoveType::Promotion;
 
-            res.number_of_castles += is_castle(p, m);
+            res.number_of_castles += m.type() == MoveType::Castling;
         }
-        auto log = p.make_move(m);
+        auto log = p_.make_move(m);
         nodes += run_wrapped(depth - 1);
-        p.unmake_move(log);
+        p_.unmake_move(log);
     }
 
     return nodes;
 }
 
-void Perft::run_up_to(int depth, Position p) {
+void Perft::run_up_to(int depth) {
     for (int i = 1; i <= depth; i++) {
 
         res = PerftResults();

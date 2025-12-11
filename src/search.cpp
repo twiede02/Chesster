@@ -19,7 +19,7 @@ void order_moves(Position &p, Movelist& moves) {
             continue;
         }
         p.unmake_move(log);
-        if (p.piece_table[m.to] != Piece::Empty)
+        if (p.piece_table[m.to()] != Piece::Empty)
             captures.add(m);
         else
             no_captures.add(m);
@@ -106,9 +106,7 @@ minimax(Position &p, int depth, Move &best_move, int starting_depth, int alpha,
         if (score > max) {
             max = score;
             if (depth == starting_depth) {
-                best_move.from = m.from;
-                best_move.to = m.to;
-                best_move.promotion = m.promotion;
+                best_move = m;
             }
             if (max >= beta)
                 break;
@@ -120,7 +118,7 @@ minimax(Position &p, int depth, Move &best_move, int starting_depth, int alpha,
 std::optional<Move>
 search(Position &p, int depth,
         std::chrono::time_point<std::chrono::high_resolution_clock> deadline) {
-    Move best_move(0, 0);
+    Move best_move;
     auto minimax_res =
         minimax(p, depth, best_move, depth, -2000000001, 2000000001, deadline);
     if (!minimax_res)

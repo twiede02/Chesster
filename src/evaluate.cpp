@@ -1,5 +1,6 @@
 #include "evaluate.h"
 #include "board.h"
+#include "square.h"
 #include "utils.h"
 
 int piece_value(Piece p) {
@@ -23,14 +24,15 @@ int evaluate_material(Position &p) {
     int res = 0;
 
     for (int i = 0; i < 64; i++) {
+        Square s(i);
 
-        if (p.color_table[i] == Color::Empty)
+        if (p.color_table[s] == Color::Empty)
             continue;
 
-        if (p.color_table[i] == Color::White) {
-            res += piece_value(p.piece_table[i]);
+        if (p.color_table[s] == Color::White) {
+            res += piece_value(p.piece_table[s]);
         } else {
-            res -= piece_value(p.piece_table[i]);
+            res -= piece_value(p.piece_table[s]);
         }
     }
 

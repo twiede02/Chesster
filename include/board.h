@@ -3,6 +3,8 @@
 #include <cstdint>
 #include <array>
 
+#include "bitboard.h"
+#include "piece_table.h"
 #include "utils.h"
 
 template <typename T>
@@ -51,10 +53,11 @@ struct Movelog {
 };
 
 struct Position {
-    Position();
+    Position() {};
     Position(std::string fen_position);
 
-    Position(const Position& other) = delete;
+    Position(const Position& other);
+    Position& operator=(const Position& other);
 
     bool white_kingside_castling_right = false;
     bool white_queenside_castling_right = false;
@@ -64,33 +67,33 @@ struct Position {
 
     // Bitboards
     // White pieces
-    uint64_t white_pawns = 0ULL;
-    uint64_t white_knights = 0ULL;
-    uint64_t white_bishops = 0ULL;
-    uint64_t white_rooks = 0ULL;
-    uint64_t white_queens = 0ULL;
-    uint64_t white_kings = 0ULL;
+    Bitboard white_pawns;
+    Bitboard white_knights;
+    Bitboard white_bishops;
+    Bitboard white_rooks;
+    Bitboard white_queens;
+    Bitboard white_kings;
 
     // Black pieces
-    uint64_t black_pawns = 0ULL;
-    uint64_t black_knights = 0ULL;
-    uint64_t black_bishops = 0ULL;
-    uint64_t black_rooks = 0ULL;
-    uint64_t black_queens = 0ULL;
-    uint64_t black_kings = 0ULL;
+    Bitboard black_pawns;
+    Bitboard black_knights;
+    Bitboard black_bishops;
+    Bitboard black_rooks;
+    Bitboard black_queens;
+    Bitboard black_kings;
 
     // Full Board Bitboards
-    uint64_t empty_squares = ~0ULL;
-    uint64_t occupied_squares = 0ULL;
+    Bitboard empty_squares;
+    Bitboard occupied_squares;
+    Bitboard enemy_pieces;
 
     // 8x8 Board
-    std::array<Piece, 64> piece_table;
-    std::array<Color, 64> color_table;
-    History<Move> move_history;
+    PieceTable<Piece> piece_table;
+    PieceTable<Color> color_table;
     History<uint64_t> hash_history;
 
     int moves_since_panwmove_or_capture = 0;
-    int en_passent_square = -1;
+    Square en_passent_square;
 
     uint64_t hash = 0ULL;
 
@@ -98,7 +101,7 @@ struct Position {
 
     bool position_is_legal();
 
-    void set_piece(Piece piece, int index, Color col);
+    void set_piece(Piece piece, Square sq, Color col);
 
     Movelog make_move(Move& m);
 
@@ -108,11 +111,7 @@ struct Position {
 extern uint64_t zobrist_table[12][64];
 // extern std::unordered_map<uint64_t, int> transposition_table;
 
-void print_full_board(Position &p);
-bool is_consistant(Position &p);
-
 bool is_capture(Position &p, Move &m);
 bool is_en_passent(Position &p, Move &m);
-bool is_castle(Position &p, Move &m);
 
 bool is_move_valid(Move &m, Position &p);

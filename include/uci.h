@@ -1,6 +1,7 @@
 #pragma once
 
 #include <search.h>
+#include "move.h"
 #include "zobrist.h"
 #include "book.h"
 #include "perft.h"
@@ -47,40 +48,37 @@ fen = "8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - ";
             char file2 = token[2];
             int rank1 = token[1] - '0';
             int rank2 = token[3] - '0';
-            Move m(get_index(file1, rank1), get_index(file2, rank2));
             if (token.size() == 5) {
                 switch (token[4]) {
-                    case 'q':
-                        m.promotion = Piece::Queen;
-                        break;
-                    case 'n':
-                        m.promotion = Piece::Knight;
-                        break;
-                    case 'r':
-                        m.promotion = Piece::Rook;
-                        break;
-                    case 'b':
-                        m.promotion = Piece::Bishop;
-                        break;
+                    case 'q': {
+                        Move m(Square(file1, rank1), Square(file2, rank2), MoveType::Promotion, Piece::Queen);
+                        p.make_move(m);
+                        break; }
+                    case 'n': {
+                        Move m(Square(file1, rank1), Square(file2, rank2), MoveType::Promotion, Piece::Knight);
+                        p.make_move(m);
+                        break; }
+                    case 'r': {
+                        Move m(Square(file1, rank1), Square(file2, rank2), MoveType::Promotion, Piece::Rook);
+                        p.make_move(m);
+                        break; }
+                    case 'b': {
+                        Move m(Square(file1, rank1), Square(file2, rank2), MoveType::Promotion, Piece::Bishop);
+                        p.make_move(m);
+                        break; }
                     default:
                         break;
                 }
+            } else {
+                Move m(Square(file1, rank1), Square(file2, rank2));
+                p.make_move(m);
             }
-            p.make_move(m);
         }
     }
 }
 
 inline void handleGo(const std::string &goData) {
     // Implement move calculation logic
-    if (p.move_history.size() < 16) {
-        std::string res = my_book.get_random_next_move(p.move_history);
-        if (res != "") {
-            std::cout << "bestmove " << res << std::endl;
-            return;
-        }
-    }
-
     std::istringstream iss(goData);
     std::string token;
     TimeControl tc;
@@ -115,7 +113,7 @@ inline void handleGo(const std::string &goData) {
     if (tc.movetime)
         time_limit += std::chrono::milliseconds(*tc.movetime / 2);
 
-    Move m(0, 0);
+    Move m;
     auto deadline = std::chrono::high_resolution_clock::now() + time_limit;
 
     for (int i = 1;; i++) {
@@ -126,24 +124,11 @@ inline void handleGo(const std::string &goData) {
         m = *search_res;
     }
 
-    std::cout << "bestmove " << get_coords_from_index(m.from)
-        << get_coords_from_index(m.to);
-    switch (m.promotion) {
-        case Piece::Queen:
-            std::cout << "q";
-            break;
-        case Piece::Knight:
-            std::cout << "n";
-            break;
-        case Piece::Rook:
-            std::cout << "r";
-            break;
-        case Piece::Bishop:
-            std::cout << "b";
-            break;
-        default:
-            break;
-    }
+    std::cout << "bestmove "
+        << m.from().to_string()
+        << m.to().to_string();
+    if (m.type() == MoveType::Promotion)
+        std::cout << to_string(m.promotedPiece());
     std::cout << "\n";
 }
 

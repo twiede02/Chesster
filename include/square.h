@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <string>
 
 class Square {
 public:
@@ -19,6 +20,7 @@ public:
     Square() : val_(Value::NO_SQR) {}
     Square(Value val) : val_(val) {}
     explicit Square(int sq) : val_(static_cast<Value>(sq)) {}
+    explicit Square(int file, int rank) : val_(static_cast<Value>(rank * 8 + file)) {}
 
     constexpr int file() const { return static_cast<int>(val_) % 8; }
     constexpr int rank() const { return static_cast<int>(val_) / 8; }
@@ -35,6 +37,13 @@ public:
     constexpr bool operator!=(const Square& rhs) const { return val_ != rhs.val_; }
 
     constexpr explicit operator bool() const { return val_ != Value::NO_SQR; }
+
+    std::string to_string() const {
+        if (val_ == Value::NO_SQR) return "NO_SQR";
+        char f = static_cast<char>('a' + file());
+        char r = static_cast<char>('1' + rank());
+        return std::string{f, r};
+    }
 
 private:
     Value val_;

@@ -1,22 +1,16 @@
 #include <algorithm>
-#include <bits/stdc++.h>
 #include <sstream>
+#include <vector>
 
 #include "attack_masks.h"
 #include "board.h"
+#include "move.h"
 #include "perft.h"
 #include "utils.h"
 
 // std::unordered_map<uint64_t, int> transposition_table(1 << 20);
 
-Position::Position() {
-    piece_table.fill(Piece::Empty);
-    color_table.fill(Color::Empty);
-}
-
 Position::Position(std::string fen_position) {
-    piece_table.fill(Piece::Empty);
-    color_table.fill(Color::Empty);
 
     std::stringstream fen_stream(fen_position);
 
@@ -46,64 +40,64 @@ Position::Position(std::string fen_position) {
 
         // Black Pieces
         if (c == 'r') {
-            this->set_piece(Piece::Rook, get_index(file, rank), Color::Black);
+            this->set_piece(Piece::Rook, Square(file, rank), Color::Black);
             file++;
             continue;
         }
         if (c == 'n') {
-            this->set_piece(Piece::Knight, get_index(file, rank), Color::Black);
+            this->set_piece(Piece::Knight, Square(file, rank), Color::Black);
             file++;
             continue;
         }
         if (c == 'b') {
-            this->set_piece(Piece::Bishop, get_index(file, rank), Color::Black);
+            this->set_piece(Piece::Bishop, Square(file, rank), Color::Black);
             file++;
             continue;
         }
         if (c == 'q') {
-            this->set_piece(Piece::Queen, get_index(file, rank), Color::Black);
+            this->set_piece(Piece::Queen, Square(file, rank), Color::Black);
             file++;
             continue;
         }
         if (c == 'k') {
-            this->set_piece(Piece::King, get_index(file, rank), Color::Black);
+            this->set_piece(Piece::King, Square(file, rank), Color::Black);
             file++;
             continue;
         }
         if (c == 'p') {
-            this->set_piece(Piece::Pawn, get_index(file, rank), Color::Black);
+            this->set_piece(Piece::Pawn, Square(file, rank), Color::Black);
             file++;
             continue;
         }
 
         // White Pieces
         if (c == 'R') {
-            this->set_piece(Piece::Rook, get_index(file, rank), Color::White);
+            this->set_piece(Piece::Rook, Square(file, rank), Color::White);
             file++;
             continue;
         }
         if (c == 'N') {
-            this->set_piece(Piece::Knight, get_index(file, rank), Color::White);
+            this->set_piece(Piece::Knight, Square(file, rank), Color::White);
             file++;
             continue;
         }
         if (c == 'B') {
-            this->set_piece(Piece::Bishop, get_index(file, rank), Color::White);
+            this->set_piece(Piece::Bishop, Square(file, rank), Color::White);
             file++;
             continue;
         }
         if (c == 'Q') {
-            this->set_piece(Piece::Queen, get_index(file, rank), Color::White);
+            this->set_piece(Piece::Queen, Square(file, rank), Color::White);
             file++;
             continue;
         }
         if (c == 'K') {
-            this->set_piece(Piece::King, get_index(file, rank), Color::White);
+            this->set_piece(Piece::King, Square(file, rank), Color::White);
             file++;
             continue;
         }
         if (c == 'P') {
-            this->set_piece(Piece::Pawn, get_index(file, rank), Color::White);
+            this->set_piece(Piece::Pawn, Square(file, rank), Color::White);
             file++;
             continue;
         }
@@ -138,6 +132,88 @@ Position::Position(std::string fen_position) {
     }
 }
 
+Position::Position(const Position& other)
+    : white_kingside_castling_right(other.white_kingside_castling_right),
+      white_queenside_castling_right(other.white_queenside_castling_right),
+      black_kingside_castling_right(other.black_kingside_castling_right),
+      black_queenside_castling_right(other.black_queenside_castling_right),
+      side_to_move(other.side_to_move),
+
+      white_pawns(other.white_pawns),
+      white_knights(other.white_knights),
+      white_bishops(other.white_bishops),
+      white_rooks(other.white_rooks),
+      white_queens(other.white_queens),
+      white_kings(other.white_kings),
+
+      black_pawns(other.black_pawns),
+      black_knights(other.black_knights),
+      black_bishops(other.black_bishops),
+      black_rooks(other.black_rooks),
+      black_queens(other.black_queens),
+      black_kings(other.black_kings),
+
+      empty_squares(other.empty_squares),
+      occupied_squares(other.occupied_squares),
+      enemy_pieces(other.enemy_pieces),
+
+      piece_table(other.piece_table),
+      color_table(other.color_table),
+      hash_history(other.hash_history),
+
+      moves_since_panwmove_or_capture(other.moves_since_panwmove_or_capture),
+      en_passent_square(other.en_passent_square),
+
+      hash(other.hash)
+{}
+
+
+Position& Position::operator=(const Position& other)
+{
+    if (this == &other) {
+        return *this;
+    }
+
+    white_kingside_castling_right  = other.white_kingside_castling_right;
+    white_queenside_castling_right = other.white_queenside_castling_right;
+    black_kingside_castling_right  = other.black_kingside_castling_right;
+    black_queenside_castling_right = other.black_queenside_castling_right;
+
+    side_to_move = other.side_to_move;
+
+    white_pawns   = other.white_pawns;
+    white_knights = other.white_knights;
+    white_bishops = other.white_bishops;
+    white_rooks   = other.white_rooks;
+    white_queens  = other.white_queens;
+    white_kings   = other.white_kings;
+
+    black_pawns   = other.black_pawns;
+    black_knights = other.black_knights;
+    black_bishops = other.black_bishops;
+    black_rooks   = other.black_rooks;
+    black_queens  = other.black_queens;
+    black_kings   = other.black_kings;
+
+    empty_squares    = other.empty_squares;
+    occupied_squares = other.occupied_squares;
+    enemy_pieces     = other.enemy_pieces;
+
+    piece_table = other.piece_table;
+    color_table = other.color_table;
+
+    hash_history = other.hash_history;
+
+    moves_since_panwmove_or_capture = other.moves_since_panwmove_or_capture;
+    en_passent_square = other.en_passent_square;
+
+    hash = other.hash;
+
+    return *this;
+}
+
+
+
 bool Position::is_check() {
     if (side_to_move == Color::White) {
         side_to_move = Color::Black;
@@ -157,686 +233,197 @@ bool Position::is_check() {
 }
 
 bool Position::position_is_legal() {
-    // Test if side_to_move could capture the king
-
-    uint64_t king = side_to_move == Color::Black ? white_kings : black_kings;
-    uint64_t enemy_king =
-        side_to_move == Color::White ? white_kings : black_kings;
-
-    int king_index = fast_log_2(king);
-    int enemy_king_index = fast_log_2(enemy_king);
-
-    // King
-    uint64_t enemy_king_moves = king_masks[enemy_king_index];
-    while (enemy_king_moves != 0ULL) {
-        int current_enemy_index = fast_log_2(enemy_king_moves);
-
-        if (current_enemy_index == king_index)
-            return false;
-
-        enemy_king_moves ^= 1ULL << current_enemy_index;
-    }
-
-    // Pawns
-    int index = king_index;
-
-    if (index % 8 < 7) {
-        // rightwards (from white's perspective)
-        int attacked_index = side_to_move == Color::White ? index - 7 : index + 9;
-        if (piece_table[attacked_index] == Piece::Pawn &&
-                color_table[attacked_index] == side_to_move) {
-            return false;
-        }
-    }
-    if (index % 8 > 0) {
-        // leftwards (from white's perspective)
-        int attacked_index = side_to_move == Color::White ? index - 9 : index + 7;
-        if (piece_table[attacked_index] == Piece::Pawn &&
-                color_table[attacked_index] == side_to_move) {
-            return false;
-        }
-    }
-    // Pawns survived
-
-    // Knights
-    uint64_t possible_knight_checks = knight_masks[king_index];
-    while (possible_knight_checks) {
-        int current_index = fast_log_2(possible_knight_checks);
-        if (color_table[current_index] != side_to_move) {
-            // no danger here
-        } else if (piece_table[current_index] == Piece::Knight) {
-            // king dead
-            return false;
-        }
-        possible_knight_checks ^= 1ULL << current_index;
-    }
-
-    // king survived knights
-
-    // now "queen move gen" for king
-
-    // first bishop style
-
-    index = king_index;
-    int down_steps = index / 8;
-    int up_steps = 7 - down_steps;
-    int left_steps = index % 8;
-    int right_steps = 7 - left_steps;
-
-    int left_down_steps = std::min(index / 8, index % 8);
-    int left_up_steps = std::min(7 - (index / 8), index % 8);
-    int right_down_steps = std::min(index / 8, 7 - (index % 8));
-    int right_up_steps = std::min(7 - (index / 8), 7 - (index % 8));
-
-    int current_index;
-
-    for (int offset = 1; offset <= left_steps; offset++) {
-        current_index = index - offset;
-        if (color_table[current_index] != Color::Empty) {
-            if (color_table[current_index] == side_to_move &&
-                    (piece_table[current_index] == Piece::Queen ||
-                     piece_table[current_index] == Piece::Rook)) {
-                return false;
-            } else {
-                offset = left_steps + 1;
-            }
-        }
-    }
-
-    for (int offset = 1; offset <= right_steps; offset++) {
-        current_index = index + offset;
-        if (color_table[current_index] != Color::Empty) {
-            if (color_table[current_index] == side_to_move &&
-                    (piece_table[current_index] == Piece::Queen ||
-                     piece_table[current_index] == Piece::Rook)) {
-                return false;
-            } else {
-                offset = right_steps + 1;
-            }
-        }
-    }
-
-    for (int offset = 1; offset <= up_steps; offset++) {
-        current_index = index + offset * 8;
-        if (color_table[current_index] != Color::Empty) {
-            if (color_table[current_index] == side_to_move &&
-                    (piece_table[current_index] == Piece::Queen ||
-                     piece_table[current_index] == Piece::Rook)) {
-                return false;
-            } else {
-                offset = up_steps + 1;
-            }
-        }
-    }
-
-    for (int offset = 1; offset <= down_steps; offset++) {
-        current_index = index - offset * 8;
-        if (color_table[current_index] != Color::Empty) {
-            if (color_table[current_index] == side_to_move &&
-                    (piece_table[current_index] == Piece::Queen ||
-                     piece_table[current_index] == Piece::Rook)) {
-                return false;
-            } else {
-                offset = down_steps + 1;
-            }
-        }
-    }
-
-    for (int offset = 1; offset <= left_down_steps; offset++) {
-        current_index = index - offset * 9;
-        if (color_table[current_index] != Color::Empty) {
-            if (color_table[current_index] == side_to_move &&
-                    (piece_table[current_index] == Piece::Queen ||
-                     piece_table[current_index] == Piece::Bishop)) {
-                return false;
-            } else {
-                offset = left_down_steps + 1;
-            }
-        }
-    }
-
-    for (int offset = 1; offset <= left_up_steps; offset++) {
-        current_index = index + offset * 7;
-        if (color_table[current_index] != Color::Empty) {
-            if (color_table[current_index] == side_to_move &&
-                    (piece_table[current_index] == Piece::Queen ||
-                     piece_table[current_index] == Piece::Bishop)) {
-                return false;
-            } else {
-                offset = left_up_steps + 1;
-            }
-        }
-    }
-
-    for (int offset = 1; offset <= right_down_steps; offset++) {
-        current_index = index - offset * 7;
-        if (color_table[current_index] != Color::Empty) {
-            if (color_table[current_index] == side_to_move &&
-                    (piece_table[current_index] == Piece::Queen ||
-                     piece_table[current_index] == Piece::Bishop)) {
-                return false;
-            } else {
-                offset = right_down_steps + 1;
-            }
-        }
-    }
-
-    for (int offset = 1; offset <= right_up_steps; offset++) {
-        current_index = index + offset * 9;
-        if (color_table[current_index] != Color::Empty) {
-            if (color_table[current_index] == side_to_move &&
-                    (piece_table[current_index] == Piece::Queen ||
-                     piece_table[current_index] == Piece::Bishop)) {
-                return false;
-            } else {
-                offset = right_up_steps + 1;
-            }
-        }
-    }
-
     return true;
 }
 
 bool is_move_valid(Move &m, Position &p) {
-    if (p.side_to_move == p.color_table[m.to])
-        return false;
-    bool res = false;
-    auto log = p.make_move(m);
-    if (p.position_is_legal())
-        res = true;
-    p.unmake_move(log);
-    return res;
+    return true;
 }
 
-void Position::set_piece(Piece piece, int index, Color col) {
-    uint64_t bit = 1ULL << index;
+void Position::set_piece(Piece piece, Square sq, Color col) {
 
     // remove the previous piece from bitboards
-    if (piece_table[index] != Piece::Empty) {
-        if (color_table[index] == Color::White) {
-            switch (piece_table[index]) {
+    if (piece_table[sq] != Piece::Empty) {
+        if (color_table[sq] == Color::White) {
+            switch (piece_table[sq]) {
                 case Piece::Pawn:
-                    white_pawns ^= bit;
-                    empty_squares |= bit;
-                    hash ^= zobrist_table[0][index];
+                    white_pawns.remove(sq);
+                    empty_squares.add(sq);
+                    occupied_squares.remove(sq);
+                    hash ^= zobrist_table[0][sq.value()];
                     break;
                 case Piece::Rook:
-                    white_rooks ^= bit;
-                    empty_squares |= bit;
-                    hash ^= zobrist_table[1][index];
+                    white_rooks.remove(sq);
+                    empty_squares.add(sq);
+                    occupied_squares.remove(sq);
+                    hash ^= zobrist_table[1][sq.value()];
                     break;
                 case Piece::Knight:
-                    white_knights ^= bit;
-                    empty_squares |= bit;
-                    hash ^= zobrist_table[2][index];
+                    white_knights.remove(sq);
+                    empty_squares.add(sq);
+                    occupied_squares.remove(sq);
+                    hash ^= zobrist_table[2][sq.value()];
                     break;
                 case Piece::Bishop:
-                    white_bishops ^= bit;
-                    empty_squares |= bit;
-                    hash ^= zobrist_table[3][index];
+                    white_bishops.remove(sq);
+                    empty_squares.add(sq);
+                    occupied_squares.remove(sq);
+                    hash ^= zobrist_table[3][sq.value()];
                     break;
                 case Piece::Queen:
-                    white_queens ^= bit;
-                    empty_squares |= bit;
-                    hash ^= zobrist_table[4][index];
+                    white_queens.remove(sq);
+                    empty_squares.add(sq);
+                    occupied_squares.remove(sq);
+                    hash ^= zobrist_table[4][sq.value()];
                     break;
                 case Piece::King:
-                    white_kings ^= bit;
-                    empty_squares |= bit;
-                    hash ^= zobrist_table[5][index];
+                    white_kings.remove(sq);
+                    empty_squares.add(sq);
+                    occupied_squares.remove(sq);
+                    hash ^= zobrist_table[5][sq.value()];
                     break;
-                default:
-                    std::cout << "PIECE NOT FOUND 2 1 index : " << index;
-                    return;
+                case Piece::Empty:
+                    break;
             }
         } else {
-            switch (piece_table[index]) {
+            switch (piece_table[sq]) {
                 case Piece::Pawn:
-                    black_pawns ^= bit;
-                    empty_squares |= bit;
-                    hash ^= zobrist_table[6][index];
+                    black_pawns.remove(sq);
+                    empty_squares.add(sq);
+                    occupied_squares.remove(sq);
+                    hash ^= zobrist_table[6][sq.value()];
                     break;
                 case Piece::Rook:
-                    black_rooks ^= bit;
-                    empty_squares |= bit;
-                    hash ^= zobrist_table[7][index];
+                    black_rooks.remove(sq);
+                    empty_squares.add(sq);
+                    occupied_squares.remove(sq);
+                    hash ^= zobrist_table[7][sq.value()];
                     break;
                 case Piece::Knight:
-                    black_knights ^= bit;
-                    empty_squares |= bit;
-                    hash ^= zobrist_table[8][index];
+                    black_knights.remove(sq);
+                    empty_squares.add(sq);
+                    occupied_squares.remove(sq);
+                    hash ^= zobrist_table[8][sq.value()];
                     break;
                 case Piece::Bishop:
-                    black_bishops ^= bit;
-                    empty_squares |= bit;
-                    hash ^= zobrist_table[9][index];
+                    black_bishops.remove(sq);
+                    empty_squares.add(sq);
+                    occupied_squares.remove(sq);
+                    hash ^= zobrist_table[9][sq.value()];
                     break;
                 case Piece::Queen:
-                    black_queens ^= bit;
-                    empty_squares |= bit;
-                    hash ^= zobrist_table[10][index];
+                    black_queens.remove(sq);
+                    empty_squares.add(sq);
+                    occupied_squares.remove(sq);
+                    hash ^= zobrist_table[10][sq.value()];
                     break;
                 case Piece::King:
-                    black_kings ^= bit;
-                    empty_squares |= bit;
-                    hash ^= zobrist_table[11][index];
+                    black_kings.remove(sq);
+                    empty_squares.add(sq);
+                    occupied_squares.remove(sq);
+                    hash ^= zobrist_table[11][sq.value()];
                     break;
-                default:
-                    std::cout << "PIECE NOT FOUND 3 1 index:" << index;
-                    return;
+                case Piece::Empty:
+                    break;
             }
         }
     }
 
-    piece_table[index] = piece;
-    color_table[index] = col;
+    piece_table[sq] = piece;
+    color_table[sq] = col;
 
     // innserting in Bitboards
-    // Update individual Bitboards
     if (col == Color::White) {
         switch (piece) {
             case Piece::Pawn:
-                white_pawns |= bit;
-                empty_squares ^= bit;
-                hash ^= zobrist_table[0][index];
+                white_pawns.add(sq);
+                empty_squares.remove(sq);
+                occupied_squares.add(sq);
+                hash ^= zobrist_table[0][sq.value()];
                 break;
             case Piece::Rook:
-                white_rooks |= bit;
-                empty_squares ^= bit;
-                hash ^= zobrist_table[1][index];
+                white_rooks.add(sq);
+                empty_squares.remove(sq);
+                occupied_squares.add(sq);
+                hash ^= zobrist_table[1][sq.value()];
                 break;
             case Piece::Knight:
-                white_knights |= bit;
-                empty_squares ^= bit;
-                hash ^= zobrist_table[2][index];
+                white_knights.add(sq);
+                empty_squares.remove(sq);
+                occupied_squares.add(sq);
+                hash ^= zobrist_table[2][sq.value()];
                 break;
             case Piece::Bishop:
-                white_bishops |= bit;
-                empty_squares ^= bit;
-                hash ^= zobrist_table[3][index];
+                white_bishops.add(sq);
+                empty_squares.remove(sq);
+                occupied_squares.add(sq);
+                hash ^= zobrist_table[3][sq.value()];
                 break;
             case Piece::Queen:
-                white_queens |= bit;
-                empty_squares ^= bit;
-                hash ^= zobrist_table[4][index];
+                white_queens.add(sq);
+                empty_squares.remove(sq);
+                occupied_squares.add(sq);
+                hash ^= zobrist_table[4][sq.value()];
                 break;
             case Piece::King:
-                white_kings |= bit;
-                empty_squares ^= bit;
-                hash ^= zobrist_table[5][index];
+                white_kings.add(sq);
+                empty_squares.remove(sq);
+                occupied_squares.add(sq);
+                hash ^= zobrist_table[5][sq.value()];
                 break;
             case Piece::Empty:
                 break;
-            default:
-                std::cout << "PIECE NOT FOUND 2";
-                return;
         }
     } else {
         switch (piece) {
             case Piece::Pawn:
-                black_pawns |= bit;
-                empty_squares ^= bit;
-                hash ^= zobrist_table[6][index];
+                black_pawns.add(sq);
+                empty_squares.remove(sq);
+                occupied_squares.add(sq);
+                hash ^= zobrist_table[6][sq.value()];
                 break;
             case Piece::Rook:
-                black_rooks |= bit;
-                empty_squares ^= bit;
-                hash ^= zobrist_table[7][index];
+                black_rooks.add(sq);
+                empty_squares.remove(sq);
+                occupied_squares.add(sq);
+                hash ^= zobrist_table[7][sq.value()];
                 break;
             case Piece::Knight:
-                black_knights |= bit;
-                empty_squares ^= bit;
-                hash ^= zobrist_table[8][index];
+                black_knights.add(sq);
+                empty_squares.remove(sq);
+                occupied_squares.add(sq);
+                hash ^= zobrist_table[8][sq.value()];
                 break;
             case Piece::Bishop:
-                black_bishops |= bit;
-                empty_squares ^= bit;
-                hash ^= zobrist_table[9][index];
+                black_bishops.add(sq);
+                empty_squares.remove(sq);
+                occupied_squares.add(sq);
+                hash ^= zobrist_table[9][sq.value()];
                 break;
             case Piece::Queen:
-                black_queens |= bit;
-                empty_squares ^= bit;
-                hash ^= zobrist_table[10][index];
+                black_queens.add(sq);
+                empty_squares.remove(sq);
+                occupied_squares.add(sq);
+                hash ^= zobrist_table[10][sq.value()];
                 break;
             case Piece::King:
-                black_kings |= bit;
-                empty_squares ^= bit;
-                hash ^= zobrist_table[11][index];
+                black_kings.add(sq);
+                empty_squares.remove(sq);
+                occupied_squares.add(sq);
+                hash ^= zobrist_table[11][sq.value()];
                 break;
             case Piece::Empty:
                 break;
-            default:
-                std::cout << "PIECE NOT FOUND 3";
-                return;
         }
     }
 }
 
 Movelog Position::make_move(Move& m) {
-    Movelog movelog{};
-    movelog.from = m.from;
-    movelog.to = m.to;
-    movelog.promotion = m.promotion;
-    movelog.previous_en_passent_square = en_passent_square;
-    movelog.previous_moves_since_pawnmove_or_capture = moves_since_panwmove_or_capture;
-    movelog.captured_piece = Piece::Empty;
-    movelog.castling = Castling::None;
-    movelog.king_destroyed_short_castle = false;
-    movelog.king_destroyed_long_castle = false;
-    movelog.rook_destroyed_castle = false;
-
-    Piece moving_piece = piece_table[m.from];
-
-    if (moving_piece == Piece::Empty) {
-        print_full_board(*this);
-        std::cout << m.from;
-        std::cout << "moving an empty square";
-        std::cout << m.to;
-        std::cout << "\nwhite ks castle" << white_kingside_castling_right;
-        std::cout << "\nwhite qs castle" << white_queenside_castling_right;
-        std::cout << "\nblack ks castle" << black_kingside_castling_right;
-        std::cout << "\nblack qs castle" << black_queenside_castling_right;
-        for (auto moves : move_history)
-            print_move(moves);
-        exit(1);
-    }
-
-    // Castling right tracking
-    if (moving_piece == Piece::King) {
-        if (side_to_move == Color::White) {
-            movelog.king_destroyed_short_castle = white_kingside_castling_right;
-            movelog.king_destroyed_long_castle = white_queenside_castling_right;
-            white_kingside_castling_right = false;
-            white_queenside_castling_right = false;
-        } else {
-            movelog.king_destroyed_short_castle = black_kingside_castling_right;
-            movelog.king_destroyed_long_castle = black_queenside_castling_right;
-            black_kingside_castling_right = false;
-            black_queenside_castling_right = false;
-        }
-    } else if (moving_piece == Piece::Rook) {
-        if (side_to_move == Color::White) {
-            if (white_kingside_castling_right) {
-                if (m.from == 7) {
-                    movelog.rook_destroyed_castle = true;
-                    white_kingside_castling_right = false;
-                }
-            }
-            if (white_queenside_castling_right) {
-                if (m.from == 0) {
-                    movelog.rook_destroyed_castle = true;
-                    white_queenside_castling_right = false;
-                }
-            }
-        } else {
-            if (black_kingside_castling_right) {
-                if (m.from == 63) {
-                    movelog.rook_destroyed_castle = true;
-                    black_kingside_castling_right = false;
-                }
-            }
-            if (black_queenside_castling_right) {
-                if (m.from == 56) {
-                    movelog.rook_destroyed_castle = true;
-                    black_queenside_castling_right = false;
-                }
-            }
-        }
-    }
-
-    // En Passent
-    if (is_en_passent(*this, m)) {
-        int captured_pawn_index =
-            side_to_move == Color::White ? m.to - 8 : m.to + 8;
-        set_piece(Piece::Empty, captured_pawn_index, Color::Empty);
-    }
-
-    movelog.previous_en_passent_square = en_passent_square;
-    if (moving_piece == Piece::Pawn) {
-        if (std::abs(m.from - m.to) == 16) {
-            en_passent_square = m.from < m.to ? m.to - 8 : m.to + 8;
-        } else {
-            en_passent_square = -1;
-        }
-    } else {
-        en_passent_square = -1;
-    }
-
-    // delete from initial square
-    set_piece(Piece::Empty, m.from, Color::Empty);
-
-    movelog.captured_piece = piece_table[m.to];
-    moves_since_panwmove_or_capture = movelog.captured_piece == Piece::Empty
-        ? moves_since_panwmove_or_capture + 1
-        : 0;
-    // insert to new square
-    if (m.promotion != Piece::Empty)
-        moving_piece = m.promotion;
-    set_piece(moving_piece, m.to, side_to_move);
-
-    if (piece_table[m.to] == Piece::King) {
-        if (m.from == 4) {
-            if (m.to == 6) {
-                set_piece(Piece::Empty, 7, Color::Empty);
-                set_piece(Piece::Rook, 5, Color::White);
-                movelog.castling = Castling::WhiteShort;
-                white_kingside_castling_right = false;
-            }
-            if (m.to == 2) {
-                set_piece(Piece::Empty, 0, Color::Empty);
-                set_piece(Piece::Rook, 3, Color::White);
-                movelog.castling = Castling::WhiteLong;
-                white_queenside_castling_right = false;
-            }
-        } else if (m.from == 60) {
-            if (m.to == 62) {
-                set_piece(Piece::Empty, 63, Color::Empty);
-                set_piece(Piece::Rook, 61, Color::Black);
-                movelog.castling = Castling::BlackShort;
-                black_kingside_castling_right = false;
-            }
-            if (m.to == 58) {
-                set_piece(Piece::Empty, 56, Color::Empty);
-                set_piece(Piece::Rook, 59, Color::Black);
-                movelog.castling = Castling::BlackLong;
-                black_queenside_castling_right = false;
-            }
-        }
-    }
-
-    if (side_to_move == Color::White) {
-        side_to_move = Color::Black;
-    } else {
-        side_to_move = Color::White;
-    }
-    move_history.add(m);
-    hash_history.add(hash);
-
-    movelog.from = m.from;
-    movelog.to = m.to;
+    Movelog movelog;
     return movelog;
 }
 
 void Position::unmake_move(Movelog& previous) {
-    move_history.pop_last();
-    hash_history.pop_last();
-
-    moves_since_panwmove_or_capture = previous.previous_moves_since_pawnmove_or_capture;
-    en_passent_square = previous.previous_en_passent_square;
-
-    // Important to note this happening here
-    if (side_to_move == Color::White) {
-        side_to_move = Color::Black;
-    } else {
-        side_to_move = Color::White;
-    }
-
-    if (previous.king_destroyed_short_castle) {
-        if (side_to_move == Color::White) {
-            white_kingside_castling_right = true;
-        } else {
-            black_kingside_castling_right = true;
-        }
-    }
-    if (previous.king_destroyed_long_castle) {
-        if (side_to_move == Color::White) {
-            white_queenside_castling_right = true;
-        } else {
-            black_queenside_castling_right = true;
-        }
-    }
-    if (previous.rook_destroyed_castle) {
-        if (side_to_move == Color::White) {
-            if (previous.from == 7) {
-                white_kingside_castling_right = true;
-            } else {
-                white_queenside_castling_right = true;
-            }
-        } else {
-            if (previous.from == 63) {
-                black_kingside_castling_right = true;
-            } else {
-                black_queenside_castling_right = true;
-            }
-        }
-    }
-
-    if (previous.castling == Castling::None) {
-
-        if (en_passent_square == previous.to && piece_table[previous.to] == Piece::Pawn) {
-            int captured_pawn_index =
-                side_to_move == Color::White ? previous.to - 8 : previous.to + 8;
-            set_piece(Piece::Pawn, captured_pawn_index,
-                    side_to_move == Color::White ? Color::Black : Color::White);
-        }
-
-        Piece moved_piece = piece_table[previous.to];
-        if (previous.promotion != Piece::Empty)
-            moved_piece = Piece::Pawn;
-        set_piece(moved_piece, previous.from, side_to_move);
-        set_piece(Piece::Empty, previous.to, Color::Empty);
-        if (previous.captured_piece != Piece::Empty)
-            set_piece(previous.captured_piece, previous.to,
-                    side_to_move == Color::White ? Color::Black : Color::White);
-
-    } else {
-        switch (previous.castling) {
-            case Castling::WhiteShort:
-                set_piece(Piece::Empty, 5, Color::Empty);
-                set_piece(Piece::Empty, 6, Color::Empty);
-                set_piece(Piece::King, 4, Color::White);
-                set_piece(Piece::Rook, 7, Color::White);
-                white_kingside_castling_right = true;
-                break;
-            case Castling::WhiteLong:
-                set_piece(Piece::Empty, 2, Color::Empty);
-                set_piece(Piece::Empty, 3, Color::Empty);
-                set_piece(Piece::King, 4, Color::White);
-                set_piece(Piece::Rook, 0, Color::White);
-                white_queenside_castling_right = true;
-                break;
-            case Castling::BlackShort:
-                set_piece(Piece::Empty, 61, Color::Empty);
-                set_piece(Piece::Empty, 62, Color::Empty);
-                set_piece(Piece::King, 60, Color::Black);
-                set_piece(Piece::Rook, 63, Color::Black);
-                black_kingside_castling_right = true;
-                break;
-            case Castling::BlackLong:
-                set_piece(Piece::Empty, 58, Color::Empty);
-                set_piece(Piece::Empty, 59, Color::Empty);
-                set_piece(Piece::King, 60, Color::Black);
-                set_piece(Piece::Rook, 56, Color::Black);
-                black_queenside_castling_right = true;
-                break;
-            case Castling::None:
-                break;
-        }
-    }
-}
-
-bool is_consistant(Position &p) {
-    std::string bbs = "";
-    for (int rank = 7; rank >= 0; --rank) {
-        for (int file = 0; file < 8; ++file) {
-            int square = rank * 8 + file;
-            if (p.black_pawns & (1ULL << square)) {
-                bbs += "p ";
-            } else if (p.black_knights & (1ULL << square)) {
-                bbs += "n ";
-            } else if (p.black_bishops & (1ULL << square)) {
-                bbs += "b ";
-            } else if (p.black_rooks & (1ULL << square)) {
-                bbs += "r ";
-            } else if (p.black_queens & (1ULL << square)) {
-                bbs += "q ";
-            } else if (p.black_kings & (1ULL << square)) {
-                bbs += "k ";
-            } else if (p.white_pawns & (1ULL << square)) {
-                bbs += "P ";
-            } else if (p.white_knights & (1ULL << square)) {
-                bbs += "N ";
-            } else if (p.white_bishops & (1ULL << square)) {
-                bbs += "B ";
-            } else if (p.white_rooks & (1ULL << square)) {
-                bbs += "R ";
-            } else if (p.white_queens & (1ULL << square)) {
-                bbs += "Q ";
-            } else if (p.white_kings & (1ULL << square)) {
-                bbs += "K ";
-            } else {
-                bbs += ". ";
-            }
-        }
-        bbs += "\n";
-    }
-
-    std::string tbs = "";
-    for (int rank = 8; rank >= 1; --rank) {
-        for (char file = 'a'; file <= 'h'; ++file) {
-            int index = get_index(file, rank);
-            auto piece = p.piece_table[index];
-            char res;
-            switch (piece) {
-                case Piece::Pawn:
-                    res = 'p';
-                    break;
-                case Piece::Rook:
-                    res = 'r';
-                    break;
-                case Piece::Knight:
-                    res = 'n';
-                    break;
-                case Piece::Bishop:
-                    res = 'b';
-                    break;
-                case Piece::Queen:
-                    res = 'q';
-                    break;
-                case Piece::King:
-                    res = 'k';
-                    break;
-                case Piece::Empty:
-                    res = '.';
-                    break;
-                default:
-                    std::cout << "PANIC, invalid piece in 8x8\n";
-            }
-            if (p.color_table[index] == Color::White) {
-                res -= 32;
-            }
-            tbs += res;
-
-            tbs += " ";
-        }
-        tbs += "\n";
-    }
-    bool result = bbs == tbs;
-    if (!result) {
-        std::cout << "bbs\n" << bbs;
-        std::cout << "\ntbs\n" << tbs;
-    }
-    return result;
 }
 
 void print_all_bitboards(Position &p) {
@@ -868,124 +455,6 @@ void print_all_bitboards(Position &p) {
     print_bitboard(p.black_kings);
 }
 
-void print_full_board(Position &p) {
-    std::cout << "\nBitboard-based\n";
-    for (int rank = 7; rank >= 0; --rank) {
-        for (int file = 0; file < 8; ++file) {
-            int square = rank * 8 + file;
-            if (p.black_pawns & (1ULL << square)) {
-                std::cout << "p ";
-            } else if (p.black_knights & (1ULL << square)) {
-                std::cout << "n ";
-            } else if (p.black_bishops & (1ULL << square)) {
-                std::cout << "b ";
-            } else if (p.black_rooks & (1ULL << square)) {
-                std::cout << "r ";
-            } else if (p.black_queens & (1ULL << square)) {
-                std::cout << "q ";
-            } else if (p.black_kings & (1ULL << square)) {
-                std::cout << "k ";
-            } else if (p.white_pawns & (1ULL << square)) {
-                std::cout << "P ";
-            } else if (p.white_knights & (1ULL << square)) {
-                std::cout << "N ";
-            } else if (p.white_bishops & (1ULL << square)) {
-                std::cout << "B ";
-            } else if (p.white_rooks & (1ULL << square)) {
-                std::cout << "R ";
-            } else if (p.white_queens & (1ULL << square)) {
-                std::cout << "Q ";
-            } else if (p.white_kings & (1ULL << square)) {
-                std::cout << "K ";
-            } else {
-                std::cout << ". ";
-            }
-        }
-        std::cout << std::endl;
-    }
-    std::cout << "\n8x8-based\n";
-    for (int rank = 8; rank >= 1; --rank) {
-        for (char file = 'a'; file <= 'h'; ++file) {
-            int index = get_index(file, rank);
-            auto piece = p.piece_table[index];
-            char res;
-            switch (piece) {
-                case Piece::Pawn:
-                    res = 'p';
-                    break;
-                case Piece::Rook:
-                    res = 'r';
-                    break;
-                case Piece::Knight:
-                    res = 'n';
-                    break;
-                case Piece::Bishop:
-                    res = 'b';
-                    break;
-                case Piece::Queen:
-                    res = 'q';
-                    break;
-                case Piece::King:
-                    res = 'k';
-                    break;
-                case Piece::Empty:
-                    res = '.';
-                    break;
-                default:
-                    std::cout << "PANIC, invalid piece in 8x8\n";
-                    return;
-            }
-            if (p.color_table[index] == Color::White) {
-                res -= 32;
-            }
-            std::cout << res << " ";
-        }
-        std::cout << std::endl;
-    }
-
-    std::cout << "\n8x8-based color\n";
-    for (int rank = 8; rank >= 1; --rank) {
-        for (char file = 'a'; file <= 'h'; ++file) {
-            int index = get_index(file, rank);
-            auto color = p.color_table[index];
-            char res = color == Color::White   ? 'W'
-                : color == Color::Black ? 'B'
-                : '.';
-            std::cout << res << " ";
-        }
-        std::cout << std::endl;
-    }
-}
-
-void cmdl_game_loop() {
-
-    Position p("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
-    print_full_board(p);
-
-    char from;
-    int from_row;
-    char to;
-    int to_row;
-
-    for (;;) {
-        std::cin >> from >> from_row >> to >> to_row;
-        if (from < 'a' || from > 'h')
-            continue;
-        if (to < 'a' || to > 'h')
-            continue;
-        if (from_row < 1 || from_row > 8)
-            continue;
-        if (to_row < 1 || to_row > 8)
-            continue;
-
-        int from_index = get_index(from, from_row);
-        int to_index = get_index(to, to_row);
-        Move m(from_index, to_index);
-        p.make_move(m);
-        print_full_board(p);
-    }
-}
-
 void go_through_all_knight_masks() {
     for (int i = 0; i < 64; i++) {
         uint64_t index = 1ULL << i;
@@ -1011,21 +480,13 @@ void go_through_all_king_masks() {
 }
 
 bool is_capture(Position &p, Move &m) {
-    if (p.piece_table[m.to] != Piece::Empty)
+    if (p.piece_table[m.to()] != Piece::Empty)
         return true;
     return is_en_passent(p, m);
 }
 
 bool is_en_passent(Position &p, Move &m) {
-    if (p.piece_table[m.from] != Piece::Pawn)
-        return false;
-    return p.en_passent_square == m.to;
+    return (p.piece_table[m.from()] == Piece::Pawn) 
+        && p.en_passent_square == m.to();
 }
 
-bool is_castle(Position &p, Move &m) {
-    if (m.from == 4 && p.piece_table[m.from] == Piece::King)
-        return m.to == 6 || m.to == 2;
-    if (m.from == 60 && p.piece_table[m.from] == Piece::King)
-        return m.to == 62 || m.to == 58;
-    return false;
-}

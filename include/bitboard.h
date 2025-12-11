@@ -21,11 +21,15 @@ public:
     }
 
     Bitboard& masked_by(const Bitboard mask) { val_ &= mask.val_; return *this; }
+    Bitboard& masked_by(const Square mask) { val_ &= 1ULL << mask.value(); return *this; }
 
     Bitboard& shift_rank_up() { val_ <<= 8; return *this; }
     Bitboard& shift_rank_down() { val_ >>= 8; return *this; }
     Bitboard& shift_left() { val_ <<= 1; return *this; }
     Bitboard& shift_right() { val_ >>= 1; return *this; }
+
+    Bitboard& remove(Square sq) { val_ ^= 1ULL << sq.value(); return *this; }
+    Bitboard& add(Square sq) { val_ |= 1ULL << sq.value(); return *this; }
 
     bool operator==(const Bitboard& rhs) const { return val_ == rhs.val_; }
     bool operator!=(const Bitboard& rhs) const { return val_ != rhs.val_; }
