@@ -101,7 +101,7 @@ struct Position {
 
     bool position_is_legal();
 
-    void set_piece(Piece piece, Square sq, Color col);
+    void set_piece(const Piece piece, const Square sq, const Color col);
 
     Movelog make_move(Move& m);
 

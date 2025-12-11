@@ -14,3 +14,5 @@ extern std::array<uint64_t[4096], 64> bishop_moves_precomp;
 void generate_magic_tables();
 Bitboard lookup_rook_move(Square s, Bitboard b);
 Bitboard lookup_bishop_move(Square s, Bitboard b);
+
+int count_1s(uint64_t b);

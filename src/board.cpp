@@ -2,6 +2,7 @@
 #include <sstream>
 #include <vector>
 
+#include "magics.h"
 #include "attack_masks.h"
 #include "board.h"
 #include "move.h"
@@ -24,84 +25,44 @@ Position::Position(std::string fen_position) {
 
     std::string board = fen_elements[0];
 
-    char file = 'a';
-    int rank = 8;
+    int rank = 7;
+    int file = 0;
+
     for (char c : board) {
         if (c == '/') {
-            file = 'a';
             rank--;
+            file = 0;
             continue;
         }
 
         if (c >= '1' && c <= '8') {
-            file = (char) (file + c - (int) '0');
+            file += c - '0';
             continue;
         }
 
-        // Black Pieces
-        if (c == 'r') {
-            this->set_piece(Piece::Rook, Square(file, rank), Color::Black);
-            file++;
-            continue;
-        }
-        if (c == 'n') {
-            this->set_piece(Piece::Knight, Square(file, rank), Color::Black);
-            file++;
-            continue;
-        }
-        if (c == 'b') {
-            this->set_piece(Piece::Bishop, Square(file, rank), Color::Black);
-            file++;
-            continue;
-        }
-        if (c == 'q') {
-            this->set_piece(Piece::Queen, Square(file, rank), Color::Black);
-            file++;
-            continue;
-        }
-        if (c == 'k') {
-            this->set_piece(Piece::King, Square(file, rank), Color::Black);
-            file++;
-            continue;
-        }
-        if (c == 'p') {
-            this->set_piece(Piece::Pawn, Square(file, rank), Color::Black);
-            file++;
-            continue;
+        Piece piece;
+        Color color;
+
+        if (c >= 'A' && c <= 'Z') {
+            color = Color::White;
+        } else {
+            color = Color::Black;
         }
 
-        // White Pieces
-        if (c == 'R') {
-            this->set_piece(Piece::Rook, Square(file, rank), Color::White);
-            file++;
-            continue;
+        switch (std::tolower(c)) {
+            case 'p': piece = Piece::Pawn;   break;
+            case 'n': piece = Piece::Knight; break;
+            case 'b': piece = Piece::Bishop; break;
+            case 'r': piece = Piece::Rook;   break;
+            case 'q': piece = Piece::Queen;  break;
+            case 'k': piece = Piece::King;   break;
+            default: continue;
         }
-        if (c == 'N') {
-            this->set_piece(Piece::Knight, Square(file, rank), Color::White);
-            file++;
-            continue;
-        }
-        if (c == 'B') {
-            this->set_piece(Piece::Bishop, Square(file, rank), Color::White);
-            file++;
-            continue;
-        }
-        if (c == 'Q') {
-            this->set_piece(Piece::Queen, Square(file, rank), Color::White);
-            file++;
-            continue;
-        }
-        if (c == 'K') {
-            this->set_piece(Piece::King, Square(file, rank), Color::White);
-            file++;
-            continue;
-        }
-        if (c == 'P') {
-            this->set_piece(Piece::Pawn, Square(file, rank), Color::White);
-            file++;
-            continue;
-        }
+
+        set_piece(piece, Square(file, rank), color);
+        file++;
     }
+
 
     if (fen_elements[1] == "w") {
         side_to_move = Color::White;
@@ -212,27 +173,59 @@ Position& Position::operator=(const Position& other)
     return *this;
 }
 
-
-
 bool Position::is_check() {
-    if (side_to_move == Color::White) {
-        side_to_move = Color::Black;
-    } else {
-        side_to_move = Color::White;
+
+    Square from = side_to_move == Color::White ?
+        white_kings.msb() :
+        black_kings.msb();
+
+
+    Bitboard rook_blockers = Bitboard(occupied_squares)
+        .masked_by(rook_attack_masks[from.value()]);
+
+    Bitboard possible_rook_squares = lookup_rook_move(from, rook_blockers);
+
+    while (possible_rook_squares) {
+        Square to = possible_rook_squares.msb_pop();
+        Piece seeing_king = piece_table[to];
+        if ((seeing_king == Piece::Queen ||
+             seeing_king == Piece::Rook) &&
+             color_table[to] != side_to_move)
+            return true;
     }
 
-    bool res = position_is_legal() == false;
 
-    if (side_to_move == Color::White) {
-        side_to_move = Color::Black;
-    } else {
-        side_to_move = Color::White;
+    Bitboard bishop_blockers = Bitboard(occupied_squares)
+        .masked_by(bishop_attack_masks[from.value()]);
+
+    Bitboard possible_bishop_squares = lookup_bishop_move(from, bishop_blockers);
+
+    while (possible_bishop_squares) {
+        Square to = possible_bishop_squares.msb_pop();
+        Piece seeing_king = piece_table[to];
+        if ((seeing_king == Piece::Queen ||
+             seeing_king == Piece::Bishop) &&
+             color_table[to] != side_to_move)
+            return true;
     }
 
-    return res;
+    Bitboard possible_knight_squares = Bitboard(knight_masks[from.value()]);
+
+    while (possible_knight_squares) {
+        Square to = possible_knight_squares.msb_pop();
+
+        Piece seeing_king = piece_table[to];
+        if (seeing_king == Piece::Knight &&
+            color_table[to] != side_to_move)
+            return true;
+    }
+
+    return false;
 }
 
 bool Position::position_is_legal() {
+    assert(count_1s(white_kings.value()) == 1);
+    assert(count_1s(black_kings.value()) == 1);
     return true;
 }
 
@@ -240,7 +233,7 @@ bool is_move_valid(Move &m, Position &p) {
     return true;
 }
 
-void Position::set_piece(Piece piece, Square sq, Color col) {
+void Position::set_piece(const Piece piece, const Square sq, const Color col) {
 
     // remove the previous piece from bitboards
     if (piece_table[sq] != Piece::Empty) {
