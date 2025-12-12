@@ -23,6 +23,8 @@ public:
     Bitboard& masked_by(const Bitboard mask) { val_ &= mask.val_; return *this; }
     Bitboard& masked_by(const Square mask) { val_ &= 1ULL << mask.value(); return *this; }
 
+    Bitboard& blocked_by(const Bitboard mask) { val_ &= ~mask.val_; return *this; }
+
     Bitboard& shift_rank_up() { val_ <<= 8; return *this; }
     Bitboard& shift_rank_down() { val_ >>= 8; return *this; }
     Bitboard& shift_left() { val_ <<= 1; return *this; }

@@ -85,7 +85,8 @@ struct Position {
     // Full Board Bitboards
     Bitboard empty_squares;
     Bitboard occupied_squares;
-    Bitboard enemy_pieces;
+    Bitboard white_pieces;
+    Bitboard black_pieces;
 
     // 8x8 Board
     PieceTable<Piece> piece_table;
@@ -96,6 +97,9 @@ struct Position {
     Square en_passent_square;
 
     uint64_t hash = 0ULL;
+
+    Bitboard friendly_pieces();
+    Bitboard enemy_pieces();
 
     bool is_check();
 

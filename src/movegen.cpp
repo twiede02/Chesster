@@ -36,6 +36,7 @@ static Bitboard RANK_2_TO_6(0xffffffffff00);
 static Bitboard RANK_3_TO_7(0xffffffffff0000);
 
 void generate_pawn_moves(Movelist &res, Position &p) {
+    int n = res.size();
     Bitboard pawns;
     Bitboard promotable_pawns;
     Bitboard pushed_pawns;
@@ -275,6 +276,8 @@ void generate_pawn_moves(Movelist &res, Position &p) {
         }
     }
 
+    std::cout << "pawn moves: " << res.size() - n << std::endl;
+
     // TODO: EN PASSENT
 }
 
@@ -286,14 +289,12 @@ void generate_knight_moves(Movelist &res, Position &p) {
         Square from = knights.msb_pop();
 
         Bitboard possible_squares = Bitboard(knight_masks[from.value()]);
+        possible_squares.masked_by(p.friendly_pieces());
 
         while (possible_squares) {
             Square to = possible_squares.msb_pop();
-
-            if (p.color_table[to] != p.side_to_move) {
-                Move m(from, to);
-                res.add(m);
-            }
+            Move m(from, to);
+            res.add(m);
         }
     }
 }
@@ -309,6 +310,7 @@ void generate_rook_moves(Movelist &res, Position &p) {
             .masked_by(rook_attack_masks[from.value()]);
 
         Bitboard possible_squares = lookup_rook_move(from, blockers);
+        possible_squares.masked_by(p.friendly_pieces());
 
         while (possible_squares) {
             Square to = possible_squares.msb_pop();
@@ -329,6 +331,7 @@ void generate_bishop_moves(Movelist &res, Position &p) {
             .masked_by(bishop_attack_masks[from.value()]);
 
         Bitboard possible_squares = lookup_bishop_move(from, blockers);
+        possible_squares.masked_by(p.friendly_pieces());
 
         while (possible_squares) {
             Square to = possible_squares.msb_pop();
@@ -349,6 +352,7 @@ void generate_queen_moves(Movelist &res, Position &p) {
             .masked_by(rook_attack_masks[from.value()]);
 
         Bitboard possible_rook_squares = lookup_rook_move(from, rook_blockers);
+        possible_rook_squares.masked_by(p.friendly_pieces());
 
         while (possible_rook_squares) {
             Square to = possible_rook_squares.msb_pop();
@@ -360,6 +364,7 @@ void generate_queen_moves(Movelist &res, Position &p) {
             .masked_by(bishop_attack_masks[from.value()]);
 
         Bitboard possible_bishop_squares = lookup_bishop_move(from, bishop_blockers);
+        possible_bishop_squares.masked_by(p.friendly_pieces());
 
         while (possible_bishop_squares) {
             Square to = possible_bishop_squares.msb_pop();
@@ -376,14 +381,12 @@ void generate_king_moves(Movelist &res, Position &p) {
 
     Square from = king.msb();
     Bitboard possible_squares = Bitboard(king_masks[from.value()]);
+    possible_squares.masked_by(p.friendly_pieces());
 
     while (possible_squares) {
         Square to = possible_squares.msb_pop();
-
-        if (p.color_table[to] != p.side_to_move) {
-            Move m(from, to);
-            res.add(m);
-        }
+        Move m(from, to);
+        res.add(m);
     }
 
     // TODO: Castling

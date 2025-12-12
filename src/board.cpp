@@ -116,7 +116,8 @@ Position::Position(const Position& other)
 
       empty_squares(other.empty_squares),
       occupied_squares(other.occupied_squares),
-      enemy_pieces(other.enemy_pieces),
+      white_pieces(other.white_pieces),
+      black_pieces(other.black_pieces),
 
       piece_table(other.piece_table),
       color_table(other.color_table),
@@ -158,7 +159,8 @@ Position& Position::operator=(const Position& other)
 
     empty_squares    = other.empty_squares;
     occupied_squares = other.occupied_squares;
-    enemy_pieces     = other.enemy_pieces;
+    white_pieces     = other.white_pieces;
+    black_pieces     = other.black_pieces;
 
     piece_table = other.piece_table;
     color_table = other.color_table;
@@ -184,13 +186,12 @@ bool Position::is_check() {
         .masked_by(rook_attack_masks[from.value()]);
 
     Bitboard possible_rook_squares = lookup_rook_move(from, rook_blockers);
+    possible_rook_squares.masked_by(friendly_pieces());
 
     while (possible_rook_squares) {
         Square to = possible_rook_squares.msb_pop();
         Piece seeing_king = piece_table[to];
-        if ((seeing_king == Piece::Queen ||
-             seeing_king == Piece::Rook) &&
-             color_table[to] != side_to_move)
+        if (seeing_king == Piece::Queen || seeing_king == Piece::Rook)
             return true;
     }
 
@@ -199,24 +200,22 @@ bool Position::is_check() {
         .masked_by(bishop_attack_masks[from.value()]);
 
     Bitboard possible_bishop_squares = lookup_bishop_move(from, bishop_blockers);
+    possible_bishop_squares.masked_by(friendly_pieces());
 
     while (possible_bishop_squares) {
         Square to = possible_bishop_squares.msb_pop();
         Piece seeing_king = piece_table[to];
-        if ((seeing_king == Piece::Queen ||
-             seeing_king == Piece::Bishop) &&
-             color_table[to] != side_to_move)
+        if (seeing_king == Piece::Queen || seeing_king == Piece::Bishop)
             return true;
     }
 
     Bitboard possible_knight_squares = Bitboard(knight_masks[from.value()]);
+    possible_knight_squares.masked_by(friendly_pieces());
 
     while (possible_knight_squares) {
         Square to = possible_knight_squares.msb_pop();
-
         Piece seeing_king = piece_table[to];
-        if (seeing_king == Piece::Knight &&
-            color_table[to] != side_to_move)
+        if (seeing_king == Piece::Knight)
             return true;
     }
 
@@ -233,11 +232,24 @@ bool is_move_valid(Move &m, Position &p) {
     return true;
 }
 
+Bitboard Position::friendly_pieces() {
+    return side_to_move == Color::White ?
+        white_pieces :
+        black_pieces;
+}
+
+Bitboard Position::enemy_pieces() {
+    return side_to_move == Color::Black ?
+        white_pieces :
+        black_pieces;
+}
+
 void Position::set_piece(const Piece piece, const Square sq, const Color col) {
 
     // remove the previous piece from bitboards
     if (piece_table[sq] != Piece::Empty) {
         if (color_table[sq] == Color::White) {
+            white_pieces.remove(sq);
             switch (piece_table[sq]) {
                 case Piece::Pawn:
                     white_pawns.remove(sq);
@@ -279,6 +291,7 @@ void Position::set_piece(const Piece piece, const Square sq, const Color col) {
                     break;
             }
         } else {
+            black_pieces.remove(sq);
             switch (piece_table[sq]) {
                 case Piece::Pawn:
                     black_pawns.remove(sq);
@@ -327,6 +340,7 @@ void Position::set_piece(const Piece piece, const Square sq, const Color col) {
 
     // innserting in Bitboards
     if (col == Color::White) {
+        white_pieces.add(sq);
         switch (piece) {
             case Piece::Pawn:
                 white_pawns.add(sq);
@@ -368,6 +382,7 @@ void Position::set_piece(const Piece piece, const Square sq, const Color col) {
                 break;
         }
     } else {
+        black_pieces.add(sq);
         switch (piece) {
             case Piece::Pawn:
                 black_pawns.add(sq);
