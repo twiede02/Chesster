@@ -186,7 +186,7 @@ bool Position::is_check() {
         .masked_by(rook_attack_masks[from.value()]);
 
     Bitboard possible_rook_squares = lookup_rook_move(from, rook_blockers);
-    possible_rook_squares.masked_by(friendly_pieces());
+    possible_rook_squares.blocked_by(friendly_pieces());
 
     while (possible_rook_squares) {
         Square to = possible_rook_squares.msb_pop();
@@ -200,7 +200,7 @@ bool Position::is_check() {
         .masked_by(bishop_attack_masks[from.value()]);
 
     Bitboard possible_bishop_squares = lookup_bishop_move(from, bishop_blockers);
-    possible_bishop_squares.masked_by(friendly_pieces());
+    possible_bishop_squares.blocked_by(friendly_pieces());
 
     while (possible_bishop_squares) {
         Square to = possible_bishop_squares.msb_pop();
@@ -210,7 +210,7 @@ bool Position::is_check() {
     }
 
     Bitboard possible_knight_squares = Bitboard(knight_masks[from.value()]);
-    possible_knight_squares.masked_by(friendly_pieces());
+    possible_knight_squares.blocked_by(friendly_pieces());
 
     while (possible_knight_squares) {
         Square to = possible_knight_squares.msb_pop();

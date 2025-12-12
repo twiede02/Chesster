@@ -1,5 +1,4 @@
 #include <array>
-#include <cstdint>
 
 #include "attack_masks.h"
 #include "board.h"
@@ -7,8 +6,8 @@
 #include "movegen.h"
 #include "move.h"
 #include "square.h"
-#include "utils.h"
 #include "bitboard.h"
+#include "utils.h"
 
 static Bitboard RANK_1(0xff);
 static Bitboard RANK_2(0xff00);
@@ -28,8 +27,6 @@ static Bitboard F_FILE(0x2020202020202020);
 static Bitboard G_FILE(0x4040404040404040);
 static Bitboard H_FILE(0x8080808080808080);
 
-static constexpr int one_row_offset = 8;
-static constexpr int two_row_offset = 16;
 static Bitboard ABCDEFG_FILE(0x7f7f7f7f7f7f7f7f);
 static Bitboard BCDEFGH_FILE(0xfefefefefefefefe);
 static Bitboard RANK_2_TO_6(0xffffffffff00);
@@ -276,8 +273,6 @@ void generate_pawn_moves(Movelist &res, Position &p) {
         }
     }
 
-    std::cout << "pawn moves: " << res.size() - n << std::endl;
-
     // TODO: EN PASSENT
 }
 
@@ -289,7 +284,7 @@ void generate_knight_moves(Movelist &res, Position &p) {
         Square from = knights.msb_pop();
 
         Bitboard possible_squares = Bitboard(knight_masks[from.value()]);
-        possible_squares.masked_by(p.friendly_pieces());
+        possible_squares.blocked_by(p.friendly_pieces());
 
         while (possible_squares) {
             Square to = possible_squares.msb_pop();
@@ -310,7 +305,7 @@ void generate_rook_moves(Movelist &res, Position &p) {
             .masked_by(rook_attack_masks[from.value()]);
 
         Bitboard possible_squares = lookup_rook_move(from, blockers);
-        possible_squares.masked_by(p.friendly_pieces());
+        possible_squares.blocked_by(p.friendly_pieces());
 
         while (possible_squares) {
             Square to = possible_squares.msb_pop();
@@ -331,7 +326,7 @@ void generate_bishop_moves(Movelist &res, Position &p) {
             .masked_by(bishop_attack_masks[from.value()]);
 
         Bitboard possible_squares = lookup_bishop_move(from, blockers);
-        possible_squares.masked_by(p.friendly_pieces());
+        possible_squares.blocked_by(p.friendly_pieces());
 
         while (possible_squares) {
             Square to = possible_squares.msb_pop();
@@ -352,7 +347,7 @@ void generate_queen_moves(Movelist &res, Position &p) {
             .masked_by(rook_attack_masks[from.value()]);
 
         Bitboard possible_rook_squares = lookup_rook_move(from, rook_blockers);
-        possible_rook_squares.masked_by(p.friendly_pieces());
+        possible_rook_squares.blocked_by(p.friendly_pieces());
 
         while (possible_rook_squares) {
             Square to = possible_rook_squares.msb_pop();
@@ -364,7 +359,7 @@ void generate_queen_moves(Movelist &res, Position &p) {
             .masked_by(bishop_attack_masks[from.value()]);
 
         Bitboard possible_bishop_squares = lookup_bishop_move(from, bishop_blockers);
-        possible_bishop_squares.masked_by(p.friendly_pieces());
+        possible_bishop_squares.blocked_by(p.friendly_pieces());
 
         while (possible_bishop_squares) {
             Square to = possible_bishop_squares.msb_pop();
@@ -381,7 +376,7 @@ void generate_king_moves(Movelist &res, Position &p) {
 
     Square from = king.msb();
     Bitboard possible_squares = Bitboard(king_masks[from.value()]);
-    possible_squares.masked_by(p.friendly_pieces());
+    possible_squares.blocked_by(p.friendly_pieces());
 
     while (possible_squares) {
         Square to = possible_squares.msb_pop();

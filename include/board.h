@@ -1,5 +1,6 @@
 #pragma once
 
+#include <climits>
 #include <cstdint>
 #include <array>
 
@@ -83,7 +84,7 @@ struct Position {
     Bitboard black_kings;
 
     // Full Board Bitboards
-    Bitboard empty_squares;
+    Bitboard empty_squares = Bitboard(ULLONG_MAX);
     Bitboard occupied_squares;
     Bitboard white_pieces;
     Bitboard black_pieces;

@@ -13,9 +13,6 @@ uint64_t Perft::run_fast(int depth) {
     }
 
     Movelist move_list = generate_moves(p_);
-    for (auto m : move_list) {
-        std::cout << to_string(m) << std::endl;
-    }
     if (depth == 1)
         return static_cast<uint64_t>(move_list.size());
 
