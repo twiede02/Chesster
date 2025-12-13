@@ -195,7 +195,7 @@ bool Position::is_check(Color c) {
     return is_square_attacked(black_kings.msb(), Color::White);
 }
 
-bool Position::is_square_attacked(Square sq, Color attacking_col) {
+bool Position::is_square_attacked(const Square sq, Color attacking_col) {
 
     Bitboard friendly_blockers = 
         side_to_move != attacking_col ? friendly_pieces() : enemy_pieces();
@@ -594,7 +594,7 @@ void Position::update_castling_rights(Move m) {
 
 void Position::do_castling_rook_move(Move m) {
     Square to = m.to();
-    Color kingColor = color_table[m.from()];
+    Color kingColor = to.rank() == 0 ? Color::White : Color::Black;
 
     if (kingColor == Color::White) {
         if (to == Square::Value::G1) {
@@ -719,7 +719,7 @@ void Position::unmake_move(const Movelog& log) {
 }
 
 
-void check_bitboards_against_tables(const Position& p) {
+void validate_position(const Position& p) {
 
     // Make local copies so we can msb_pop()
     Bitboard wp = p.white_pawns;
@@ -735,6 +735,65 @@ void check_bitboards_against_tables(const Position& p) {
     Bitboard br = p.black_rooks;
     Bitboard bq = p.black_queens;
     Bitboard bk = p.black_kings;
+
+    for (int i = 0; i < 64; i++) {
+        Square sq(i);
+
+        Piece pt = p.piece_table[sq];
+        Color ct = p.color_table[sq];
+
+        if (ct == Color::Empty)
+            assert(pt == Piece::Empty);
+        if (pt == Piece::Empty)
+            assert(ct == Color::Empty);
+
+        if (ct == Color::White) {
+            switch (pt) {
+                case Piece::Pawn:
+                    assert(Bitboard(wp).masked_by(Bitboard(1ULL << i)));
+                    break;
+                case Piece::Knight:
+                    assert(Bitboard(wk).masked_by(Bitboard(1ULL << i)));
+                    break;
+                case Piece::Bishop:
+                    assert(Bitboard(wb).masked_by(Bitboard(1ULL << i)));
+                    break;
+                case Piece::Rook:
+                    assert(Bitboard(wr).masked_by(Bitboard(1ULL << i)));
+                    break;
+                case Piece::Queen:
+                    assert(Bitboard(wq).masked_by(Bitboard(1ULL << i)));
+                    break;
+                case Piece::King:
+                    assert(Bitboard(wk).masked_by(Bitboard(1ULL << i)));
+                    break;
+            }
+        }
+
+
+        if (ct == Color::Black) {
+            switch (pt) {
+                case Piece::Pawn:
+                    assert(Bitboard(bp).masked_by(Bitboard(1ULL << i)));
+                    break;
+                case Piece::Knight:
+                    assert(Bitboard(bk).masked_by(Bitboard(1ULL << i)));
+                    break;
+                case Piece::Bishop:
+                    assert(Bitboard(bb).masked_by(Bitboard(1ULL << i)));
+                    break;
+                case Piece::Rook:
+                    assert(Bitboard(br).masked_by(Bitboard(1ULL << i)));
+                    break;
+                case Piece::Queen:
+                    assert(Bitboard(bq).masked_by(Bitboard(1ULL << i)));
+                    break;
+                case Piece::King:
+                    assert(Bitboard(bk).masked_by(Bitboard(1ULL << i)));
+                    break;
+            }
+        }
+    }
 
     auto check = [&](Bitboard& bb, Piece expected_piece, Color expected_color) {
         while (bb) {
@@ -806,7 +865,34 @@ void print_position(const Position& p) {
     }
     std::cout << "\n";
 
-    check_bitboards_against_tables(p);
+    for (int rank = 7; rank >= 0; --rank) {
+        for (int file = 0; file < 8; ++file) {
+            Square s(file, rank);
+            Color c  = p.color_table[s];
+
+            if (c == Color::Empty) {
+                std::cout << " .";
+                continue;
+            }
+
+            char ch = '?';
+            switch (c) {
+                case Color::White: ch = 'w'; break;
+                case Color::Black: ch = 'b'; break;
+                case Color::Empty: ch = '.'; break;
+                default: break;
+            }
+
+            if (c == Color::White)
+                ch = std::toupper(ch);
+
+            std::cout << " " << ch;
+        }
+        std::cout << "\n";
+    }
+
+    validate_position(p);
+    std::cout << "Position valid \n";
 }
 
 bool is_capture(Position &p, Move &m) {

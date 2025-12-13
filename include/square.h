@@ -31,8 +31,8 @@ public:
     Square& shift_rank_up() { val_ = static_cast<Value>(static_cast<int>(val_) + 8); return *this; }
     Square& shift_rank_down() { val_ = static_cast<Value>(static_cast<int>(val_) - 8); return *this; }
 
-    Square& shift_file_left() { val_ = static_cast<Value>(static_cast<int>(val_) + 1); return *this; }
-    Square& shift_file_right() { val_ = static_cast<Value>(static_cast<int>(val_) - 1); return *this; }
+    Square& shift_file_left() { val_ = static_cast<Value>(static_cast<int>(val_) - 1); return *this; }
+    Square& shift_file_right() { val_ = static_cast<Value>(static_cast<int>(val_) + 1); return *this; }
 
     constexpr bool operator==(const Square& rhs) const { return val_ == rhs.val_; }
     constexpr bool operator!=(const Square& rhs) const { return val_ != rhs.val_; }

@@ -115,7 +115,7 @@ struct Position {
     Bitboard friendly_pieces();
     Bitboard enemy_pieces();
 
-    bool is_square_attacked(Square sq, Color by);
+    bool is_square_attacked(const Square sq, Color by);
 
     bool has_castling_right(CastlingRights r);
     void add_castling_right(CastlingRights r);

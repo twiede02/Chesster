@@ -186,25 +186,20 @@ inline void uciloop() {
         } else if (input == "quit") {
             break;
         } else if (input == "test") {
-            p = Position("8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - ");
+            p = Position("8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 1");
+            std::cout << "\n";
+            print_position(p);
+            Movelog l = p.make_move(Move(Square(Square::Value::A5), Square::Value::A4));
+            print_position(p);
+            l = p.make_move(Move(Square(Square::Value::H4), Square::Value::H3));
+
+            print_position(p);
+            std::cout << "pre \n";
+            if (p.is_check(Color::Black))
+                std::cout << "b is  \n";
+
             print_position(p);
             std::cout << "\n";
-            auto ml = generate_moves(p);
-            for (auto m : ml) {
-                print_move_compact(m);
-                std::cout << std::endl;
-                auto l = p.make_move(m);
-                p.unmake_move(l);
-            }
-            std::cout << ml.size() << "\n";
-            // for (int i = 0; i < 64; i++) {
-            //     print_bitboard(Bitboard(rook_attack_masks[i]));
-            //     std::cout << "\n\n";
-            // }
-            // p.make_move(Move(Square(Square::Value::B5), Square::Value::B6));
-            Color c = p.side_to_move == Color::White ? Color::Black : Color::White;
-            std::cout << "is check (should be) \n" << p.is_check(c) << "\n";
-            // print_position(p);
         } else if (input.empty()) {
             break;
         } else {
