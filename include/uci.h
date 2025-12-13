@@ -1,7 +1,12 @@
 #pragma once
 
 #include <search.h>
+#include "attack_masks.h"
+#include "board.h"
 #include "move.h"
+#include "movegen.h"
+#include "square.h"
+#include "utils.h"
 #include "zobrist.h"
 #include "book.h"
 #include "perft.h"
@@ -39,6 +44,7 @@ inline void handlePosition(const std::string &positionData) {
     }
     if (startpos_flag) {
         fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+        // fen = "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - ";
     }
     p = Position(fen);
     if (token == "moves") {
@@ -179,6 +185,26 @@ inline void uciloop() {
             handleGo(goData);
         } else if (input == "quit") {
             break;
+        } else if (input == "test") {
+            p = Position("8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - ");
+            print_position(p);
+            std::cout << "\n";
+            auto ml = generate_moves(p);
+            for (auto m : ml) {
+                print_move_compact(m);
+                std::cout << std::endl;
+                auto l = p.make_move(m);
+                p.unmake_move(l);
+            }
+            std::cout << ml.size() << "\n";
+            // for (int i = 0; i < 64; i++) {
+            //     print_bitboard(Bitboard(rook_attack_masks[i]));
+            //     std::cout << "\n\n";
+            // }
+            // p.make_move(Move(Square(Square::Value::B5), Square::Value::B6));
+            Color c = p.side_to_move == Color::White ? Color::Black : Color::White;
+            std::cout << "is check (should be) \n" << p.is_check(c) << "\n";
+            // print_position(p);
         } else if (input.empty()) {
             break;
         } else {

@@ -33,7 +33,6 @@ static Bitboard RANK_2_TO_6(0xffffffffff00);
 static Bitboard RANK_3_TO_7(0xffffffffff0000);
 
 void generate_pawn_moves(Movelist &res, Position &p) {
-    int n = res.size();
     Bitboard pawns;
     Bitboard promotable_pawns;
     Bitboard pushed_pawns;
@@ -384,8 +383,49 @@ void generate_king_moves(Movelist &res, Position &p) {
         res.add(m);
     }
 
-    // TODO: Castling
+    if (p.side_to_move == Color::White) {
+        if (p.has_castling_right(CastlingRights::WhiteKingside) &&
+                p.piece_table[Square::Value::F1] == Piece::Empty &&
+                p.piece_table[Square::Value::G1] == Piece::Empty &&
+                !p.is_square_attacked(Square::Value::E1, Color::Black) &&
+                !p.is_square_attacked(Square::Value::F1, Color::Black) &&
+                !p.is_square_attacked(Square::Value::G1, Color::Black)) 
+        {
+            res.add(Move(Square::Value::E1, Square::Value::G1, MoveType::Castling));
+        }
 
+        if (p.has_castling_right(CastlingRights::WhiteQueenside) &&
+                p.piece_table[Square::Value::B1] == Piece::Empty &&
+                p.piece_table[Square::Value::C1] == Piece::Empty &&
+                p.piece_table[Square::Value::D1] == Piece::Empty &&
+                !p.is_square_attacked(Square::Value::E1, Color::Black) &&
+                !p.is_square_attacked(Square::Value::D1, Color::Black) &&
+                !p.is_square_attacked(Square::Value::C1, Color::Black)) 
+        {
+            res.add(Move(Square::Value::E1, Square::Value::C1, MoveType::Castling));
+        }
+    } else {
+        if (p.has_castling_right(CastlingRights::BlackKingside) &&
+                p.piece_table[Square::Value::F8] == Piece::Empty &&
+                p.piece_table[Square::Value::G8] == Piece::Empty &&
+                !p.is_square_attacked(Square::Value::E8, Color::White) &&
+                !p.is_square_attacked(Square::Value::F8, Color::White) &&
+                !p.is_square_attacked(Square::Value::G8, Color::White))
+        {
+            res.add(Move(Square::Value::E8, Square::Value::G8, MoveType::Castling));
+        }
+
+        if (p.has_castling_right(CastlingRights::BlackQueenside) &&
+                p.piece_table[Square::Value::B8] == Piece::Empty &&
+                p.piece_table[Square::Value::C8] == Piece::Empty &&
+                p.piece_table[Square::Value::D8] == Piece::Empty &&
+                !p.is_square_attacked(Square::Value::E8, Color::White) &&
+                !p.is_square_attacked(Square::Value::D8, Color::White) &&
+                !p.is_square_attacked(Square::Value::C8, Color::White))
+        {
+            res.add(Move(Square::Value::E8, Square::Value::C8, MoveType::Castling));
+        }
+    }
 }
 
 Movelist generate_moves(Position &p) {
@@ -398,7 +438,19 @@ Movelist generate_moves(Position &p) {
     generate_queen_moves(res, p);
     generate_king_moves(res, p);
 
-    return res;
+    // return res;
+
+    Movelist legal_moves(&p);
+    for (auto m : res) {
+        Movelog log = p.make_move(m);
+        Color c = p.side_to_move == Color::White ? Color::Black : Color::White;
+        if (!p.is_check(c)) {
+            legal_moves.add(m);
+        }
+        p.unmake_move(log);
+    }
+
+    return legal_moves;
 }
 
 Movelist generate_captures(Position &p) {

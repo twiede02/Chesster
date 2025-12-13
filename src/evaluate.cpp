@@ -48,7 +48,7 @@ int evaluate(Position &p) {
             return -1;
     }
 
-    if (p.moves_since_panwmove_or_capture >= 100)
+    if (p.moves_since_pawnmove_or_capture >= 100)
         return 0;
 
     int res = 0;

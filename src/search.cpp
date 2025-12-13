@@ -13,7 +13,7 @@ void order_moves(Position &p, Movelist& moves) {
     Movelist no_captures(&p);
     for (auto &m : moves) {
         auto log = p.make_move(m);
-        if (p.is_check()) {
+        if (p.is_check(p.side_to_move)) {
             checks.add(m);
             p.unmake_move(log);
             continue;
@@ -51,7 +51,8 @@ std::optional<int> search_captures(
     Movelist moves = generate_captures(p);
     if (moves.size() == 0) {
         // basicly checks for mate
-        if (p.position_is_legal())
+        GameResult res = p.game_result();
+        if (res == GameResult::Checkmate)
             return -2000000000;
         return 0;
     }
@@ -89,7 +90,8 @@ minimax(Position &p, int depth, Move &best_move, int starting_depth, int alpha,
     order_moves(p, moves);
     if (moves.size() == 0) {
         // basicly checks for mate
-        if (p.position_is_legal())
+        GameResult res = p.game_result();
+        if (res == GameResult::Checkmate)
             return -2000000000;
         return 0;
     }

@@ -7,6 +7,7 @@ class Bitboard {
 public:
     Bitboard() : val_(0ULL) {}
     Bitboard(uint64_t val) : val_(val) {}
+    Bitboard(const Bitboard& other) : val_(other.val_) {}
 
     constexpr uint64_t value() const { return val_; }
 

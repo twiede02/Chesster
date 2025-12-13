@@ -6,6 +6,7 @@
 
 #include "bitboard.h"
 #include "piece_table.h"
+#include "square.h"
 #include "utils.h"
 
 template <typename T>
@@ -40,17 +41,32 @@ private:
     std::size_t size_;
 };
 
-struct Movelog {
-    int from = -1;
-    int to = -1;
-    Piece promotion = Piece::Empty;
+enum class CastlingRights : uint8_t {
+    None           = 0,
+    WhiteKingside  = 1 << 0,
+    WhiteQueenside = 1 << 1,
+    BlackKingside  = 1 << 2,
+    BlackQueenside = 1 << 3,
+};
+
+class Movelog {
+public:
+    Move m;
     Piece captured_piece = Piece::Empty;
-    int previous_moves_since_pawnmove_or_capture = 0;
-    int previous_en_passent_square = -1;
-    Castling castling = Castling::None;
-    bool rook_destroyed_castle = false;
-    bool king_destroyed_short_castle = false;
-    bool king_destroyed_long_castle = false;
+    Square previous_en_passent_square = Square(Square::Value::NO_SQR);
+    int last_moves_since_pawn_or_capture = 0;
+    CastlingRights previousCastlingRights;
+
+    explicit operator bool() const { return m.from() != m.to(); }
+};
+
+enum class GameResult {
+    Ongoing,
+    Checkmate,
+    Stalemate,
+    Draw50Move,
+    DrawInsufficientMaterial,
+    DrawThreefold
 };
 
 struct Position {
@@ -60,10 +76,7 @@ struct Position {
     Position(const Position& other);
     Position& operator=(const Position& other);
 
-    bool white_kingside_castling_right = false;
-    bool white_queenside_castling_right = false;
-    bool black_kingside_castling_right = false;
-    bool black_queenside_castling_right = false;
+    CastlingRights castlingRights = CastlingRights::None;
     Color side_to_move = Color::White;
 
     // Bitboards
@@ -94,7 +107,7 @@ struct Position {
     PieceTable<Color> color_table;
     History<uint64_t> hash_history;
 
-    int moves_since_panwmove_or_capture = 0;
+    int moves_since_pawnmove_or_capture = 0;
     Square en_passent_square;
 
     uint64_t hash = 0ULL;
@@ -102,15 +115,28 @@ struct Position {
     Bitboard friendly_pieces();
     Bitboard enemy_pieces();
 
-    bool is_check();
+    bool is_square_attacked(Square sq, Color by);
 
-    bool position_is_legal();
+    bool has_castling_right(CastlingRights r);
+    void add_castling_right(CastlingRights r);
+    void remove_castling_right(CastlingRights r);
+
+    bool is_check(Color c);
+    bool is_game_over();
+    bool is_insufficient_material();
+    bool is_50_move_draw();
+    bool has_legal_move();
+    bool is_threefold_repetition();
+
+    GameResult game_result();
 
     void set_piece(const Piece piece, const Square sq, const Color col);
 
-    Movelog make_move(Move& m);
+    void do_castling_rook_move(Move m);
+    void update_castling_rights(Move m);
 
-    void unmake_move(Movelog& previous);
+    Movelog make_move(Move m);
+    void unmake_move(const Movelog& previous);
 };
 
 extern uint64_t zobrist_table[12][64];
@@ -119,4 +145,5 @@ extern uint64_t zobrist_table[12][64];
 bool is_capture(Position &p, Move &m);
 bool is_en_passent(Position &p, Move &m);
 
-bool is_move_valid(Move &m, Position &p);
+void print_position(const Position& p);
+

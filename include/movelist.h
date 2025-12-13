@@ -13,9 +13,7 @@ class Movelist {
     Move* end() { return &moves_[size_]; }
     const Move* end() const { return &moves_[size_]; }
 
-    void add (Move& m) {
-        if (!is_move_valid(m, *p_))
-            return;
+    void add (Move m) {
         moves_[size_] = m;
         size_++;
     }

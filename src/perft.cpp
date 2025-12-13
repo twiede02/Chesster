@@ -55,7 +55,8 @@ uint64_t Perft::run_wrapped(int depth) {
     Movelist move_list = generate_moves(p_);
 
     if (depth == 0) {
-        if (p_.is_check()) {
+        Color checked = p_.side_to_move == Color::White ? Color::Black : Color::White;
+        if (p_.is_check(checked)) {
             res.number_of_checks++;
         }
         if (move_list.size() == 0) {

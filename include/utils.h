@@ -128,6 +128,7 @@ void inline print_move(Move m) {
 
 void inline print_move_compact(Move m) {
     std::cout << m.from().to_string() << m.to().to_string();
+    if (m.type() == MoveType::Promotion)
     switch (m.promotedPiece()) {
         case Piece::Rook:
             std::cout << "r";
