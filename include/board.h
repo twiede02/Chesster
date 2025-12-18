@@ -3,6 +3,7 @@
 #include <climits>
 #include <cstdint>
 #include <array>
+#include <istream>
 
 #include "bitboard.h"
 #include "piece_table.h"
@@ -49,6 +50,23 @@ enum class CastlingRights : uint8_t {
     BlackQueenside = 1 << 3,
 };
 
+inline std::string to_string(CastlingRights cr) {
+    if (cr == CastlingRights::None) return "-";
+
+    std::string s;
+
+    if (static_cast<uint8_t>(cr) & static_cast<uint8_t>(CastlingRights::WhiteKingside))
+        s += 'K';
+    if (static_cast<uint8_t>(cr) & static_cast<uint8_t>(CastlingRights::WhiteQueenside))
+        s += 'Q';
+    if (static_cast<uint8_t>(cr) & static_cast<uint8_t>(CastlingRights::BlackKingside))
+        s += 'k';
+    if (static_cast<uint8_t>(cr) & static_cast<uint8_t>(CastlingRights::BlackQueenside))
+        s += 'q';
+
+    return s;
+}
+
 class Movelog {
 public:
     Move m;
@@ -59,6 +77,48 @@ public:
 
     explicit operator bool() const { return m.from() != m.to(); }
 };
+
+inline std::string to_string(const Movelog& log) {
+    if (!log) return "null";
+
+    std::string s;
+
+    // Basic move (from -> to, with promotion if any)
+    s += log.m.from().to_string();
+    s += log.m.to().to_string();
+
+    if (log.m.type() == MoveType::Promotion) {
+        switch (log.m.promotedPiece()) {
+            case Piece::Knight: s += 'n'; break;
+            case Piece::Bishop: s += 'b'; break;
+            case Piece::Rook:   s += 'r'; break;
+            case Piece::Queen:  s += 'q'; break;
+            default: break;
+        }
+    }
+
+    // Captured piece (if any)
+    if (log.captured_piece != Piece::Empty) {
+        s += " x";
+        s += to_string(log.captured_piece); // assumes you have to_string(Piece)
+    }
+
+    // Previous en passant square (if any)
+    if (log.previous_en_passent_square) {
+        s += " ep:";
+        s += log.previous_en_passent_square.to_string();
+    }
+
+    // Last moves since pawn move or capture
+    s += " lm:";
+    s += std::to_string(log.last_moves_since_pawn_or_capture);
+
+    // Previous castling rights
+    s += " cr:";
+    s += to_string(log.previousCastlingRights); // assumes you have to_string(CastlingRights)
+
+    return s;
+}
 
 enum class GameResult {
     Ongoing,
@@ -146,4 +206,5 @@ bool is_capture(Position &p, Move &m);
 bool is_en_passent(Position &p, Move &m);
 
 void print_position(const Position& p);
+void validate_position(const Position& p);
 

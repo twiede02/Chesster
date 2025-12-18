@@ -62,7 +62,9 @@ Position::Position(std::string fen_position) {
             default: continue;
         }
 
-        set_piece(piece, Square(file, rank), color);
+        int index = file + 8 * rank;
+        assert(index >= 0 && index < 64);
+        set_piece(piece, Square(index), color);
         file++;
     }
 
@@ -617,6 +619,9 @@ void Position::do_castling_rook_move(Move m) {
 
 
 Movelog Position::make_move(Move m) {
+    // TODO: Pos 3 d 4
+    // bking gone
+    // prob taken by promoting pawn
     Movelog log;
     log.m = m;
     log.captured_piece = piece_table[m.to()]; 
@@ -713,11 +718,14 @@ void Position::unmake_move(const Movelog& log) {
 
     set_piece(piece_table[m.to()], m.from(), side_to_move);
     set_piece(log.captured_piece, m.to(), 
-            side_to_move == Color::White ?
-                Color::Black :
-                Color::White);
+            log.captured_piece == Piece::Empty ? Color::Empty : side_to_move);
 }
 
+inline void assert_throw(bool condition) {
+    if (!condition) {
+        throw std::runtime_error("wasted");
+    }
+}
 
 void validate_position(const Position& p) {
 
@@ -743,29 +751,29 @@ void validate_position(const Position& p) {
         Color ct = p.color_table[sq];
 
         if (ct == Color::Empty)
-            assert(pt == Piece::Empty);
+            assert_throw(pt == Piece::Empty);
         if (pt == Piece::Empty)
-            assert(ct == Color::Empty);
+            assert_throw(ct == Color::Empty);
 
         if (ct == Color::White) {
             switch (pt) {
                 case Piece::Pawn:
-                    assert(Bitboard(wp).masked_by(Bitboard(1ULL << i)));
+                    assert_throw(Bitboard(wp).masked_by(Bitboard(1ULL << i)));
                     break;
                 case Piece::Knight:
-                    assert(Bitboard(wk).masked_by(Bitboard(1ULL << i)));
+                    assert_throw(Bitboard(wk).masked_by(Bitboard(1ULL << i)));
                     break;
                 case Piece::Bishop:
-                    assert(Bitboard(wb).masked_by(Bitboard(1ULL << i)));
+                    assert_throw(Bitboard(wb).masked_by(Bitboard(1ULL << i)));
                     break;
                 case Piece::Rook:
-                    assert(Bitboard(wr).masked_by(Bitboard(1ULL << i)));
+                    assert_throw(Bitboard(wr).masked_by(Bitboard(1ULL << i)));
                     break;
                 case Piece::Queen:
-                    assert(Bitboard(wq).masked_by(Bitboard(1ULL << i)));
+                    assert_throw(Bitboard(wq).masked_by(Bitboard(1ULL << i)));
                     break;
                 case Piece::King:
-                    assert(Bitboard(wk).masked_by(Bitboard(1ULL << i)));
+                    assert_throw(Bitboard(wk).masked_by(Bitboard(1ULL << i)));
                     break;
             }
         }
@@ -774,22 +782,22 @@ void validate_position(const Position& p) {
         if (ct == Color::Black) {
             switch (pt) {
                 case Piece::Pawn:
-                    assert(Bitboard(bp).masked_by(Bitboard(1ULL << i)));
+                    assert_throw(Bitboard(bp).masked_by(Bitboard(1ULL << i)));
                     break;
                 case Piece::Knight:
-                    assert(Bitboard(bk).masked_by(Bitboard(1ULL << i)));
+                    assert_throw(Bitboard(bk).masked_by(Bitboard(1ULL << i)));
                     break;
                 case Piece::Bishop:
-                    assert(Bitboard(bb).masked_by(Bitboard(1ULL << i)));
+                    assert_throw(Bitboard(bb).masked_by(Bitboard(1ULL << i)));
                     break;
                 case Piece::Rook:
-                    assert(Bitboard(br).masked_by(Bitboard(1ULL << i)));
+                    assert_throw(Bitboard(br).masked_by(Bitboard(1ULL << i)));
                     break;
                 case Piece::Queen:
-                    assert(Bitboard(bq).masked_by(Bitboard(1ULL << i)));
+                    assert_throw(Bitboard(bq).masked_by(Bitboard(1ULL << i)));
                     break;
                 case Piece::King:
-                    assert(Bitboard(bk).masked_by(Bitboard(1ULL << i)));
+                    assert_throw(Bitboard(bk).masked_by(Bitboard(1ULL << i)));
                     break;
             }
         }
@@ -836,7 +844,9 @@ void validate_position(const Position& p) {
 void print_position(const Position& p) {
     for (int rank = 7; rank >= 0; --rank) {
         for (int file = 0; file < 8; ++file) {
-            Square s(file, rank);
+            int index = file + 8 * rank;
+            assert_throw(index >= 0 && index < 64);
+            Square s(index);
             Piece pc = p.piece_table[s];
             Color c  = p.color_table[s];
 
@@ -867,7 +877,9 @@ void print_position(const Position& p) {
 
     for (int rank = 7; rank >= 0; --rank) {
         for (int file = 0; file < 8; ++file) {
-            Square s(file, rank);
+            int index = file + 8 * rank;
+            assert_throw(index >= 0 && index < 64);
+            Square s(index);
             Color c  = p.color_table[s];
 
             if (c == Color::Empty) {

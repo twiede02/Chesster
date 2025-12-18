@@ -19,9 +19,39 @@ uint64_t Perft::run_fast(int depth) {
     uint64_t nodes = 0;
 
     for (auto m : move_list) {
+        std::cout << "hi\n";
+        try {
+            validate_position(p_);
+        } catch (const std::runtime_error& e) {
+            std::cout << "Before move " << to_string(m) << std::endl;
+            print_position(p_);
+            std::cerr << e.what() << '\n';
+            // std::exit(1);
+        }
+
         auto log = p_.make_move(m);
+
+        try {
+            validate_position(p_);
+        } catch (const std::runtime_error& e) {
+            std::cout << "Move: " << to_string(m) << std::endl;
+            print_position(p_);
+            std::cerr << e.what() << '\n';
+            // std::exit(1);
+        }
+
         nodes += run_fast(depth - 1);
         p_.unmake_move(log);
+        try {
+            validate_position(p_);
+        } catch (const std::runtime_error& e) {
+            std::cout << "Unmade: " << to_string(m) << std::endl;
+            print_position(p_);
+            std::cerr << e.what() << '\n';
+            // std::exit(1);
+        }
+
+
     }
 
     return nodes;

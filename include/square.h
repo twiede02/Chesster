@@ -21,7 +21,6 @@ public:
     Square() : val_(Value::NO_SQR) { assert(static_cast<int>(val_) >= 0 && static_cast<int>(val_) <= 64); }
     Square(Value val) : val_(val) { assert(static_cast<int>(val_) >= 0 && static_cast<int>(val_) <= 64); }
     explicit Square(int sq) : val_(static_cast<Value>(sq)) { assert(static_cast<int>(val_) >= 0 && static_cast<int>(val_) <= 64); }
-    explicit Square(int file, int rank) : val_(static_cast<Value>(rank * 8 + file)) { assert(static_cast<int>(val_) >= 0 && static_cast<int>(val_) <= 64); }
 
     constexpr int file() const { return static_cast<int>(val_) % 8; }
     constexpr int rank() const { return static_cast<int>(val_) / 8; }

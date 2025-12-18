@@ -56,26 +56,47 @@ inline void handlePosition(const std::string &positionData) {
             if (token.size() == 5) {
                 switch (token[4]) {
                     case 'q': {
-                        Move m(Square(file1, rank1), Square(file2, rank2), MoveType::Promotion, Piece::Queen);
+                        int i1 = file1 + 8 * rank1;
+                        int i2 = file2 + 8 * rank2;
+                        assert(i1 >= 0 && i1 < 64);
+                        assert(i2 >= 0 && i2 < 64);
+                        Move m(Square(i1), Square(i2), MoveType::Promotion, Piece::Queen);
                         p.make_move(m);
                         break; }
                     case 'n': {
-                        Move m(Square(file1, rank1), Square(file2, rank2), MoveType::Promotion, Piece::Knight);
+                        int i1 = file1 + 8 * rank1;
+                        int i2 = file2 + 8 * rank2;
+                        assert(i1 >= 0 && i1 < 64);
+                        assert(i2 >= 0 && i2 < 64);
+                        Move m(Square(i1), Square(i2), MoveType::Promotion, Piece::Knight);
                         p.make_move(m);
                         break; }
                     case 'r': {
-                        Move m(Square(file1, rank1), Square(file2, rank2), MoveType::Promotion, Piece::Rook);
+                        int i1 = file1 + 8 * rank1;
+                        int i2 = file2 + 8 * rank2;
+                        assert(i1 >= 0 && i1 < 64);
+                        assert(i2 >= 0 && i2 < 64);
+                        Move m(Square(i1), Square(i2), MoveType::Promotion, Piece::Rook);
                         p.make_move(m);
                         break; }
                     case 'b': {
-                        Move m(Square(file1, rank1), Square(file2, rank2), MoveType::Promotion, Piece::Bishop);
+                        int i1 = file1 + 8 * rank1;
+                        int i2 = file2 + 8 * rank2;
+                        assert(i1 >= 0 && i1 < 64);
+                        assert(i2 >= 0 && i2 < 64);
+                        Move m(Square(i1), Square(i2), MoveType::Promotion, Piece::Bishop);
                         p.make_move(m);
                         break; }
                     default:
                         break;
                 }
             } else {
-                Move m(Square(file1, rank1), Square(file2, rank2));
+                int i1 = file1 + 8 * rank1;
+                int i2 = file2 + 8 * rank2;
+                assert(i1 >= 0 && i1 < 64);
+                assert(i2 >= 0 && i2 < 64);
+                Move m(Square(i1), Square(i2), MoveType::Normal);
+                // TODO: detect castling here
                 p.make_move(m);
             }
         }
@@ -186,19 +207,24 @@ inline void uciloop() {
         } else if (input == "quit") {
             break;
         } else if (input == "test") {
-            p = Position("8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 1");
+            p = Position("8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - ");
             std::cout << "\n";
             print_position(p);
-            Movelog l = p.make_move(Move(Square(Square::Value::A5), Square::Value::A4));
+
+            Move m(Square(Square::Value::G2), Square(Square::Value::G4), MoveType::Normal, Piece::Knight);
+            Movelog l = p.make_move(m);
+            std::cout << "confirm " << to_string(l);
+            std::cout << "just made move" << std::endl;
             print_position(p);
-            l = p.make_move(Move(Square(Square::Value::H4), Square::Value::H3));
+            std::cout << "move valid" << std::endl;
+            p.unmake_move(l);
+            std::cout << "unmade move" << std::endl;
+            // Perft myp(p);
+            // uint64_t res = myp.run_fast(4);
+            // std::cout << "Nodes: " << res << std::endl;
 
             print_position(p);
-            std::cout << "pre \n";
-            if (p.is_check(Color::Black))
-                std::cout << "b is  \n";
-
-            print_position(p);
+            std::cout << "unmove valid" << std::endl;
             std::cout << "\n";
         } else if (input.empty()) {
             break;
