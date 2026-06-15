@@ -37,6 +37,8 @@ public:
     bool operator==(const Bitboard& rhs) const { return val_ == rhs.val_; }
     bool operator!=(const Bitboard& rhs) const { return val_ != rhs.val_; }
 
+    Bitboard& operator=(const Bitboard&) = default;
+
     constexpr operator bool() const { return val_; }
 
 private:

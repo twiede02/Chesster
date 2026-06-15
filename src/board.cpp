@@ -775,6 +775,9 @@ void validate_position(const Position& p) {
                 case Piece::King:
                     assert_throw(Bitboard(wk).masked_by(Bitboard(1ULL << i)));
                     break;
+                case Piece::Empty:
+                default:
+                    break;
             }
         }
 
@@ -799,13 +802,16 @@ void validate_position(const Position& p) {
                 case Piece::King:
                     assert_throw(Bitboard(bk).masked_by(Bitboard(1ULL << i)));
                     break;
+                case Piece::Empty:
+                default:
+                    break;
             }
         }
     }
 
-    auto check = [&](Bitboard& bb, Piece expected_piece, Color expected_color) {
-        while (bb) {
-            Square sq = bb.msb_pop();
+    auto check = [&](Bitboard& b, Piece expected_piece, Color expected_color) {
+        while (b) {
+            Square sq = b.msb_pop();
 
             Piece pt = p.piece_table[sq];
             Color ct = p.color_table[sq];
@@ -867,7 +873,7 @@ void print_position(const Position& p) {
             }
 
             if (c == Color::White)
-                ch = std::toupper(ch);
+                ch = static_cast<char>(std::toupper(static_cast<unsigned char>(ch)));
 
             std::cout << " " << ch;
         }
@@ -896,7 +902,7 @@ void print_position(const Position& p) {
             }
 
             if (c == Color::White)
-                ch = std::toupper(ch);
+                ch = static_cast<char>(std::toupper(static_cast<unsigned char>(ch)));
 
             std::cout << " " << ch;
         }

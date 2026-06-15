@@ -10,24 +10,13 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 add_compile_options(-Wall -Wextra -Wpedantic -Wshadow -Wconversion)
 option(ENABLE_SANITIZERS "Enable runtime sanitizers for debugging" ON)
 
-if (NOT CMAKE_BUILD_TYPE)
-    set(CMAKE_BUILD_TYPE Debug CACHE STRING "Build type (Debug or Release)" FORCE)
-    set(CMAKE_CXX_CLANG_TIDY "clang-tidy;-checks=cppcoreguidelines-*")
-endif()
+set(CMAKE_CXX_CLANG_TIDY clang-tidy)
 
-# Include directories
-include_directories(include)
-
-# Add source files
 file(GLOB SOURCES CONFIGURE_DEPENDS "src/*.cpp")
 
-# Add executable target
 add_executable(chesster ${SOURCES})
 
-if (ENABLE_SANITIZERS AND CMAKE_BUILD_TYPE STREQUAL "Debug")
-    target_compile_options(chesster PRIVATE -fsanitize=address,undefined)
-    target_link_options(chesster PRIVATE -fsanitize=address,undefined)
-endif()
+target_include_directories(chesster PRIVATE include)
 
 if ("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
     message(STATUS "Configuring Debug build with sanitizers")
@@ -45,7 +34,8 @@ if ("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
 elseif (CMAKE_BUILD_TYPE STREQUAL "Release")
     message(STATUS "Configuring Release build")
 
-    target_compile_options(chesster PRIVATE -O3 -DNDEBUG)
+    target_compile_options(chesster PRIVATE -O3)
+    target_compile_definitions(chesster PRIVATE NDEBUG)
     target_link_options(chesster PRIVATE -O3)
 
 endif()
