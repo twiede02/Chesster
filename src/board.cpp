@@ -627,6 +627,7 @@ Movelog Position::make_move(Move m) {
     log.captured_piece = piece_table[m.to()]; 
     log.previousCastlingRights = castlingRights;
     log.last_moves_since_pawn_or_capture = moves_since_pawnmove_or_capture;
+    log.previous_en_passent_square = en_passent_square;
 
     if (piece_table[m.from()] == Piece::Pawn || log.captured_piece != Piece::Empty) {
         moves_since_pawnmove_or_capture = 0;
@@ -637,12 +638,10 @@ Movelog Position::make_move(Move m) {
     update_castling_rights(m);
 
     if (piece_table[m.from()] == Piece::Pawn && abs(m.to().value() - m.from().value()) == 16) {
-        log.previous_en_passent_square = Square((m.from().value() + m.to().value()) / 2);
+        en_passent_square = Square(std::min(m.from().value(), m.to().value()) + 8);
     } else {
-        log.previous_en_passent_square = Square(Square::Value::NO_SQR);
+        en_passent_square = Square(Square::Value::NO_SQR);
     }
-
-    en_passent_square = Square(Square::Value::NO_SQR);
 
     set_piece(piece_table[m.from()], m.to(), side_to_move);
     set_piece(Piece::Empty, m.from(), Color::Empty);
@@ -654,6 +653,7 @@ Movelog Position::make_move(Move m) {
         else 
             capSq.shift_rank_up();
         log.captured_piece = piece_table[capSq];
+        assert_throw(log.captured_piece == Piece::Pawn);
         set_piece(Piece::Empty, capSq, Color::Empty);
     }
 
@@ -667,8 +667,6 @@ Movelog Position::make_move(Move m) {
 
     side_to_move = !side_to_move;
 
-    // TODO: Zobrist update
-
     return log;
 }
 
@@ -678,6 +676,7 @@ void Position::unmake_move(const Movelog& log) {
     side_to_move = !side_to_move;
     castlingRights = log.previousCastlingRights;
     moves_since_pawnmove_or_capture = log.last_moves_since_pawn_or_capture;
+    en_passent_square = log.previous_en_passent_square;
 
     // castling rook move reversal
     if (m.type() == MoveType::Castling) {
@@ -720,12 +719,6 @@ void Position::unmake_move(const Movelog& log) {
         set_piece(log.captured_piece, m.to(), !side_to_move);
     else
         set_piece(Piece::Empty, m.to(), Color::Empty);
-}
-
-inline void assert_throw(bool condition) {
-    if (!condition) {
-        throw std::runtime_error("wasted");
-    }
 }
 
 void validate_position(const Position& p) {

@@ -208,3 +208,9 @@ bool is_en_passent(Position &p, Move &m);
 void print_position(const Position& p);
 void validate_position(const Position& p);
 
+inline void assert_throw(bool condition) {
+    if (!condition) {
+        throw std::runtime_error("wasted");
+    }
+}
+

@@ -272,7 +272,70 @@ void generate_pawn_moves(Movelist &res, Position &p) {
         }
     }
 
-    // TODO: EN PASSENT
+    if (p.en_passent_square != Square::Value::NO_SQR) {
+        if (p.side_to_move == Color::White) {
+            assert_throw(p.en_passent_square.rank() == 5);
+
+            // capturing leftwards
+            if (p.en_passent_square.file() < 7) {
+                Square potential_EP = p.en_passent_square;
+                potential_EP
+                    .shift_rank_down()
+                    .shift_file_right();
+
+                if (p.piece_table[potential_EP] == Piece::Pawn && 
+                    p.color_table[potential_EP] == Color::White) {
+                    Move m(potential_EP, p.en_passent_square, MoveType::EnPassent);
+                    res.add(m);
+                }
+            }
+
+            // capturing rightwards
+            if (p.en_passent_square.file() > 0) {
+                Square potential_EP = p.en_passent_square;
+                potential_EP
+                    .shift_rank_down()
+                    .shift_file_left();
+
+                if (p.piece_table[potential_EP] == Piece::Pawn && 
+                    p.color_table[potential_EP] == Color::White) {
+                    Move m(potential_EP, p.en_passent_square, MoveType::EnPassent);
+                    res.add(m);
+                }
+            }
+
+        } else {
+            assert_throw(p.en_passent_square.rank() == 2);
+
+            // capturing leftwards
+            if (p.en_passent_square.file() < 7) {
+                Square potential_EP = p.en_passent_square;
+                potential_EP
+                    .shift_rank_up()
+                    .shift_file_right();
+
+                if (p.piece_table[potential_EP] == Piece::Pawn && 
+                    p.color_table[potential_EP] == Color::White) {
+                    Move m(potential_EP, p.en_passent_square, MoveType::EnPassent);
+                    res.add(m);
+                }
+            }
+
+            // capturing rightwards
+            if (p.en_passent_square.file() > 0) {
+                Square potential_EP = p.en_passent_square;
+                potential_EP
+                    .shift_rank_up()
+                    .shift_file_left();
+
+                if (p.piece_table[potential_EP] == Piece::Pawn && 
+                    p.color_table[potential_EP] == Color::White) {
+                    Move m(potential_EP, p.en_passent_square, MoveType::EnPassent);
+                    res.add(m);
+                }
+            }
+        }
+    }
 }
 
 void generate_knight_moves(Movelist &res, Position &p) {

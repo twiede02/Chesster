@@ -14,13 +14,13 @@ class Movelist {
     const Move* end() const { return &moves_[size_]; }
 
     void add (Move m) {
-        moves_[size_] = m;
-        size_++;
+        assert_throw(size_ < 256);
+        moves_[size_++] = m;
     }
 
     size_t size() const { return size_; }
 
-    size_t clear() { size_ = 0; }
+    void clear() { size_ = 0; }
 
    private:
     Move moves_[256];
