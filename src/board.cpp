@@ -761,7 +761,7 @@ void validate_position(const Position& p) {
                     assert_throw(Bitboard(wp).masked_by(Bitboard(1ULL << i)));
                     break;
                 case Piece::Knight:
-                    assert_throw(Bitboard(wk).masked_by(Bitboard(1ULL << i)));
+                    assert_throw(Bitboard(wn).masked_by(Bitboard(1ULL << i)));
                     break;
                 case Piece::Bishop:
                     assert_throw(Bitboard(wb).masked_by(Bitboard(1ULL << i)));
@@ -788,7 +788,7 @@ void validate_position(const Position& p) {
                     assert_throw(Bitboard(bp).masked_by(Bitboard(1ULL << i)));
                     break;
                 case Piece::Knight:
-                    assert_throw(Bitboard(bk).masked_by(Bitboard(1ULL << i)));
+                    assert_throw(Bitboard(bn).masked_by(Bitboard(1ULL << i)));
                     break;
                 case Piece::Bishop:
                     assert_throw(Bitboard(bb).masked_by(Bitboard(1ULL << i)));

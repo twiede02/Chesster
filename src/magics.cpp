@@ -253,6 +253,7 @@ void generate_magic_tables() {
     }
 }
 
+// TODO switch in magics
 Bitboard lookup_rook_move(Square s, Bitboard b) {
     return ratt(s.value(), b.value());
     int i = transform(b.value(), rook_magics[s.value()], RBits[s.value()]);
