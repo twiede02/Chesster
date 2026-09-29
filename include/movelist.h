@@ -5,7 +5,7 @@
 
 class Movelist {
    public:
-    Movelist(Position* p) : p_(p) {}
+    Movelist() {}
 
     Move* begin() { return &moves_[0]; }
     const Move* begin() const { return &moves_[0]; }
@@ -25,7 +25,6 @@ class Movelist {
    private:
     Move moves_[256];
     size_t size_ = 0;
-    Position* p_;
 };
 
 

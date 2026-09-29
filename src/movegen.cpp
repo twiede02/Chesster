@@ -429,7 +429,7 @@ void generate_king_moves(Movelist &res, Position &p) {
 }
 
 Movelist generate_moves(Position &p) {
-    Movelist res(&p);
+    Movelist res;
 
     generate_pawn_moves(res, p);
     generate_knight_moves(res, p);
@@ -440,7 +440,7 @@ Movelist generate_moves(Position &p) {
 
     // return res;
 
-    Movelist legal_moves(&p);
+    Movelist legal_moves;
     for (auto m : res) {
         Movelog log = p.make_move(m);
         Color c = !p.side_to_move;
@@ -455,7 +455,7 @@ Movelist generate_moves(Position &p) {
 
 Movelist generate_captures(Position &p) {
     Movelist moves = generate_moves(p);
-    Movelist res(&p);
+    Movelist res;
 
     for (auto &m : moves)
         if (p.piece_table[m.to()] != Piece::Empty)
