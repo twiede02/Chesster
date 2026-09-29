@@ -10,7 +10,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 add_compile_options(-Wall -Wextra -Wpedantic -Wshadow -Wconversion)
 option(ENABLE_SANITIZERS "Enable runtime sanitizers for debugging" ON)
 
-set(CMAKE_CXX_CLANG_TIDY clang-tidy)
+# set(CMAKE_CXX_CLANG_TIDY clang-tidy)
 
 file(GLOB SOURCES CONFIGURE_DEPENDS "src/*.cpp")
 

@@ -443,7 +443,7 @@ Movelist generate_moves(Position &p) {
     Movelist legal_moves(&p);
     for (auto m : res) {
         Movelog log = p.make_move(m);
-        Color c = p.side_to_move == Color::White ? Color::Black : Color::White;
+        Color c = !p.side_to_move;
         if (!p.is_check(c)) {
             legal_moves.add(m);
         }

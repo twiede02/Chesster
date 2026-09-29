@@ -8,6 +8,15 @@ enum class Color { Empty = 0, White, Black };
 enum class Castling { WhiteShort, WhiteLong, BlackShort, BlackLong, None };
 enum class MoveType { Normal, Castling, EnPassent, Promotion };
 
+inline Color operator!(Color color) {
+    switch (color)
+    {
+        case Color::White: return Color::Black;
+        case Color::Black: return Color::White;
+        default:            return Color::Empty;
+    }
+}
+
 // layout left to right
 // 2 bits: move type
 // 00: normal

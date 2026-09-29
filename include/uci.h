@@ -211,9 +211,9 @@ inline void uciloop() {
             std::cout << "\n";
             print_position(p);
 
-            Move m(Square(Square::Value::G2), Square(Square::Value::G4), MoveType::Normal, Piece::Knight);
+            Move m(Square(Square::Value::B4), Square(Square::Value::F4), MoveType::Normal, Piece::Knight);
             Movelog l = p.make_move(m);
-            std::cout << "confirm " << to_string(l);
+            std::cout << "confirm " << to_string(l) << std::endl;
             std::cout << "just made move" << std::endl;
             print_position(p);
             std::cout << "move valid" << std::endl;

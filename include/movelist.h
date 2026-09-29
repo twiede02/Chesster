@@ -18,13 +18,13 @@ class Movelist {
         size_++;
     }
 
-    int size() const { return size_; }
+    size_t size() const { return size_; }
 
-    void clear() { size_ = 0; }
+    size_t clear() { size_ = 0; }
 
    private:
     Move moves_[256];
-    int size_ = 0;
+    size_t size_ = 0;
     Position* p_;
 };
 

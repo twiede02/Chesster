@@ -636,12 +636,11 @@ Movelog Position::make_move(Move m) {
 
     update_castling_rights(m);
 
-    // TODO: Handle en passant target
-    // if (board[m.from()] == Piece::Pawn && abs(m.to() - m.from()) == 16) {
-    //     enPassantSquare = Square((m.from() + m.to()) / 2);
-    // } else {
-    //     enPassantSquare = Square(Square::Value::NO_SQR);
-    // }
+    if (piece_table[m.from()] == Piece::Pawn && abs(m.to().value() - m.from().value()) == 16) {
+        log.previous_en_passent_square = Square((m.from().value() + m.to().value()) / 2);
+    } else {
+        log.previous_en_passent_square = Square(Square::Value::NO_SQR);
+    }
 
     en_passent_square = Square(Square::Value::NO_SQR);
 
@@ -666,7 +665,7 @@ Movelog Position::make_move(Move m) {
         do_castling_rook_move(m);
     }
 
-    side_to_move = (side_to_move == Color::White) ? Color::Black : Color::White;
+    side_to_move = !side_to_move;
 
     // TODO: Zobrist update
 
@@ -676,7 +675,7 @@ Movelog Position::make_move(Move m) {
 void Position::unmake_move(const Movelog& log) {
     Move m = log.m;
 
-    side_to_move = (side_to_move == Color::White) ? Color::Black : Color::White;
+    side_to_move = !side_to_move;
     castlingRights = log.previousCastlingRights;
     moves_since_pawnmove_or_capture = log.last_moves_since_pawn_or_capture;
 
@@ -709,7 +708,7 @@ void Position::unmake_move(const Movelog& log) {
             capSq.shift_rank_down();
         else 
             capSq.shift_rank_up();
-        set_piece(Piece::Pawn, capSq, (side_to_move == Color::White) ? Color::Black : Color::White);
+        set_piece(Piece::Pawn, capSq, !side_to_move);
     }
 
     if (m.type() == MoveType::Promotion) {
@@ -717,8 +716,10 @@ void Position::unmake_move(const Movelog& log) {
     }
 
     set_piece(piece_table[m.to()], m.from(), side_to_move);
-    set_piece(log.captured_piece, m.to(), 
-            log.captured_piece == Piece::Empty ? Color::Empty : side_to_move);
+    if (log.captured_piece != Piece::Empty)
+        set_piece(log.captured_piece, m.to(), !side_to_move);
+    else
+        set_piece(Piece::Empty, m.to(), Color::Empty);
 }
 
 inline void assert_throw(bool condition) {
