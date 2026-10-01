@@ -31,7 +31,7 @@ public:
     Bitboard& shift_left() { val_ <<= 1; return *this; }
     Bitboard& shift_right() { val_ >>= 1; return *this; }
 
-    Bitboard& remove(Square sq) { val_ ^= 1ULL << sq.value(); return *this; }
+    Bitboard& remove(Square sq) { val_ &= ~(1ULL << sq.value()); return *this; }
     Bitboard& add(Square sq) { val_ |= 1ULL << sq.value(); return *this; }
 
     bool operator==(const Bitboard& rhs) const { return val_ == rhs.val_; }

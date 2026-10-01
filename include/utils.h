@@ -41,7 +41,7 @@ std::string inline to_string(Piece p) {
 std::string inline to_string(MoveType t) {
     switch (t) {
         case MoveType::Normal:
-            return "Nomal";
+            return "Normal";
         case MoveType::Castling:
             return "Castling";
         case MoveType::EnPassent:
@@ -64,7 +64,7 @@ std::string inline to_string(Color c) {
     }
 }
 
-inline std::string to_string(Move m) {
+std::string inline to_string(Move m) {
     std::string s;
 
     s += m.from().to_string(); 
@@ -121,9 +121,9 @@ int inline fast_log_2(uint64_t num) {
 }
 
 void inline print_move(Move m) {
-    std::cout << "\nFrom: " << m.from().to_string() << " to: " << m.to().to_string()
-        << "\nPromotion: " << to_string(m.promotedPiece())
-        << "\nType: " << to_string(m.type());
+    std::cout << m.from().to_string() << " " << m.to().to_string() << std::endl;
+    if (m.type() != MoveType::Normal)
+        std::cout << "\nPromotion: " << to_string(m.promotedPiece()) << "\nType: " << to_string(m.type()) << std::endl;
 }
 
 void inline print_move_compact(Move m) {

@@ -371,6 +371,8 @@ Bitboard Position::enemy_pieces() {
 }
 
 void Position::set_piece(const Piece piece, const Square sq, const Color col) {
+    if (piece == Piece::Empty) assert_throw(col == Color::Empty);
+    if (col == Color::Empty) assert_throw(piece == Piece::Empty);
 
     // remove the previous piece from bitboards
     if (piece_table[sq] != Piece::Empty) {
@@ -464,7 +466,7 @@ void Position::set_piece(const Piece piece, const Square sq, const Color col) {
     piece_table[sq] = piece;
     color_table[sq] = col;
 
-    // innserting in Bitboards
+    // inserting in Bitboards
     if (col == Color::White) {
         white_pieces.add(sq);
         switch (piece) {
@@ -507,7 +509,7 @@ void Position::set_piece(const Piece piece, const Square sq, const Color col) {
             case Piece::Empty:
                 break;
         }
-    } else {
+    } else if (col == Color::Black) {
         black_pieces.add(sq);
         switch (piece) {
             case Piece::Pawn:
@@ -622,6 +624,9 @@ Movelog Position::make_move(Move m) {
     // TODO: Pos 3 d 4
     // bking gone
     // prob taken by promoting pawn
+    assert_throw(piece_table[m.from()] != Piece::Empty);
+    assert_throw(color_table[m.from()] != Color::Empty);
+
     Movelog log;
     log.m = m;
     log.captured_piece = piece_table[m.to()]; 
@@ -673,6 +678,9 @@ Movelog Position::make_move(Move m) {
 void Position::unmake_move(const Movelog& log) {
     Move m = log.m;
 
+    assert_throw(piece_table[m.to()] != Piece::Empty);
+    assert_throw(color_table[m.to()] != Color::Empty);
+
     side_to_move = !side_to_move;
     castlingRights = log.previousCastlingRights;
     moves_since_pawnmove_or_capture = log.last_moves_since_pawn_or_capture;
@@ -714,11 +722,14 @@ void Position::unmake_move(const Movelog& log) {
         set_piece(Piece::Pawn, m.to(), side_to_move);
     }
 
-    set_piece(piece_table[m.to()], m.from(), side_to_move);
+set_piece(piece_table[m.to()], m.from(), side_to_move);
     if (log.captured_piece != Piece::Empty)
         set_piece(log.captured_piece, m.to(), !side_to_move);
     else
         set_piece(Piece::Empty, m.to(), Color::Empty);
+
+    assert_throw(piece_table[m.from()] != Piece::Empty);
+    assert_throw(color_table[m.from()] == side_to_move);
 }
 
 void validate_position(const Position& p) {
@@ -839,6 +850,149 @@ void validate_position(const Position& p) {
     check(bk, Piece::King,   Color::Black);
 
     // At this point, every local bitboard has been consumed to zero
+
+
+    // -------------------------------------------------------------------------
+    // Validate aggregate bitboards against the piece-specific bitboards
+    // -------------------------------------------------------------------------
+
+    Bitboard expected_white_pieces =
+        Bitboard(p.white_pawns.value() |
+                 p.white_knights.value() |
+                 p.white_bishops.value() |
+                 p.white_rooks.value() |
+                 p.white_queens.value() |
+                 p.white_kings.value());
+
+    Bitboard expected_black_pieces =
+        Bitboard(p.black_pawns.value() |
+                 p.black_knights.value() |
+                 p.black_bishops.value() |
+                 p.black_rooks.value() |
+                 p.black_queens.value() |
+                 p.black_kings.value());
+
+    Bitboard expected_occupied =
+        Bitboard(expected_white_pieces.value() |
+                 expected_black_pieces.value());
+
+    Bitboard expected_empty =
+        Bitboard(~expected_occupied.value());
+
+    if (p.white_pieces != expected_white_pieces) {
+        std::cout << "WHITE PIECES MISMATCH\n"
+                  << "expected: " << expected_white_pieces.value() << "\n"
+                  << "actual:   " << p.white_pieces.value() << "\n";
+        assert_throw(false);
+    }
+
+    if (p.black_pieces != expected_black_pieces) {
+        std::cout << "BLACK PIECES MISMATCH\n"
+                  << "expected: " << expected_black_pieces.value() << "\n"
+                  << "actual:   " << p.black_pieces.value() << "\n";
+        assert_throw(false);
+    }
+
+    if (p.occupied_squares != expected_occupied) {
+        std::cout << "OCCUPIED SQUARES MISMATCH\n"
+                  << "expected: " << expected_occupied.value() << "\n"
+                  << "actual:   " << p.occupied_squares.value() << "\n";
+        assert_throw(false);
+    }
+
+    if (p.empty_squares != expected_empty) {
+        std::cout << "EMPTY SQUARES MISMATCH\n"
+                  << "expected: " << expected_empty.value() << "\n"
+                  << "actual:   " << p.empty_squares.value() << "\n";
+        assert_throw(false);
+    }
+
+    // -------------------------------------------------------------------------
+    // Validate aggregate bitboards against piece_table / color_table
+    // -------------------------------------------------------------------------
+
+    Bitboard expected_white_from_table;
+    Bitboard expected_black_from_table;
+    Bitboard expected_occupied_from_table;
+    Bitboard expected_empty_from_table;
+
+    for (int i = 0; i < 64; ++i) {
+        Square sq(i);
+
+        Piece piece = p.piece_table[sq];
+        Color color = p.color_table[sq];
+
+        if (piece == Piece::Empty) {
+            expected_empty_from_table.add(sq);
+        } else {
+            expected_occupied_from_table.add(sq);
+
+            if (color == Color::White)
+                expected_white_from_table.add(sq);
+            else if (color == Color::Black)
+                expected_black_from_table.add(sq);
+            else
+                assert_throw(false);
+        }
+    }
+
+    if (p.white_pieces != expected_white_from_table) {
+        std::cout << "WHITE PIECES / TABLE MISMATCH\n"
+                  << "expected: " << expected_white_from_table.value() << "\n"
+                  << "actual:   " << p.white_pieces.value() << "\n";
+        assert_throw(false);
+    }
+
+    if (p.black_pieces != expected_black_from_table) {
+        std::cout << "BLACK PIECES / TABLE MISMATCH\n"
+                  << "expected: " << expected_black_from_table.value() << "\n"
+                  << "actual:   " << p.black_pieces.value() << "\n";
+        assert_throw(false);
+    }
+
+    if (p.occupied_squares != expected_occupied_from_table) {
+        std::cout << "OCCUPIED / TABLE MISMATCH\n"
+                  << "expected: " << expected_occupied_from_table.value() << "\n"
+                  << "actual:   " << p.occupied_squares.value() << "\n";
+        assert_throw(false);
+    }
+
+    if (p.empty_squares != expected_empty_from_table) {
+        std::cout << "EMPTY / TABLE MISMATCH\n"
+                  << "expected: " << expected_empty_from_table.value() << "\n"
+                  << "actual:   " << p.empty_squares.value() << "\n";
+        assert_throw(false);
+    }
+
+    // -------------------------------------------------------------------------
+    // Aggregate invariants
+    // -------------------------------------------------------------------------
+
+    // White and black cannot occupy the same square.
+    assert_throw(
+        (p.white_pieces.value() & p.black_pieces.value()) == 0
+    );
+
+    // Occupied = White | Black.
+    assert_throw(
+        p.occupied_squares.value() ==
+        (p.white_pieces.value() | p.black_pieces.value())
+    );
+
+    // Empty = ~Occupied.
+    assert_throw(
+        p.empty_squares.value() == ~p.occupied_squares.value()
+    );
+
+    // Every square is either occupied or empty, never both.
+    assert_throw(
+        (p.occupied_squares.value() & p.empty_squares.value()) == 0
+    );
+
+    // Occupied and empty cover the entire board.
+    assert_throw(
+        (p.occupied_squares.value() | p.empty_squares.value()) == UINT64_MAX
+    );
 }
 
 void print_position(const Position& p) {

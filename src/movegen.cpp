@@ -249,7 +249,7 @@ void generate_pawn_moves(Movelist &res, Position &p) {
             Square to = right_capuring_pawns.msb_pop();
             if (p.color_table[to] != p.side_to_move) {
                 Square from = to;
-                from.shift_rank_up().shift_file_left();
+                from.shift_rank_up().shift_file_right();
                 Move m(from, to);
                 res.add(m);
             }
@@ -358,7 +358,7 @@ void generate_knight_moves(Movelist &res, Position &p) {
 
 void generate_rook_moves(Movelist &res, Position &p) {
     Bitboard rooks =
-        p.side_to_move == Color::White ? Bitboard(p.white_rooks): Bitboard(p.black_rooks);
+        p.side_to_move == Color::White ? Bitboard(p.white_rooks) : Bitboard(p.black_rooks);
 
     while (rooks) {
         Square from = rooks.msb_pop();
@@ -503,15 +503,24 @@ Movelist generate_moves(Position &p) {
 
     // return res;
 
+    print_position(p);
+
     Movelist legal_moves;
     for (auto m : res) {
         Movelog log = p.make_move(m);
         Color c = !p.side_to_move;
         if (!p.is_check(c)) {
             legal_moves.add(m);
+            // std::cout << "ok ";
+            print_move(m);
+        } else {
+            std::cout << "illegal ";
+            print_move(m);
+            // print_position(p);
         }
         p.unmake_move(log);
     }
+    std::cout << "movegen done" << std::endl << std::endl;
 
     return legal_moves;
 }

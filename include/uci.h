@@ -207,11 +207,11 @@ inline void uciloop() {
         } else if (input == "quit") {
             break;
         } else if (input == "test") {
-            p = Position("8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - ");
+            p = Position("8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 1");
             std::cout << "\n";
             print_position(p);
 
-            Move m(Square(Square::Value::B4), Square(Square::Value::F4), MoveType::Normal, Piece::Knight);
+            Move m(Square(Square::Value::E2), Square(Square::Value::E3), MoveType::Normal, Piece::Knight);
             Movelog l = p.make_move(m);
             std::cout << "confirm " << to_string(l) << std::endl;
             std::cout << "just made move" << std::endl;
